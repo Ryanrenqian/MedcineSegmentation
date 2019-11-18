@@ -15,7 +15,7 @@
     },
     "checkpoint_save_freq": 1,
     "epoch_save_freq": 1,
-    "last_run_date": "2019-11-18_09-35-34",
+    "last_run_date": "2019-11-18_13-39-26",
     "last_run_machine": "no specific machine",
     "resume_checkpoint": "",
     "resume_only_model": true,

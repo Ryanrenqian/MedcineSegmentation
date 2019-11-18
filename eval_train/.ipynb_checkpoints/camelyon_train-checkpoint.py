@@ -19,6 +19,7 @@ import time
 import pdb
 import os
 import json
+import torch.nn.functional as F
 
 
 class Train(basic_train.BasicTrain):
@@ -85,15 +86,18 @@ class Train(basic_train.BasicTrain):
                 train_input = Variable(train_input.type(torch.cuda.FloatTensor))
             else:
                 train_input = Variable(train_input.type(torch.FloatTensor))
+#             
+            train_output = _model(train_input).squeeze().cpu()
 #             pdb.set_trace()
-            train_output = _model(train_input)
-            pdb.set_trace()
 #             train_output = self.after_model_output(train_output, self.config)  
-            loss = criterion(train_output.cpu(), train_labels.cpu()) 
+            loss = criterion(train_output, train_labels) 
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-#             acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(train_output.cpu(), train_labels, 0.5)
+#             pdb.set_trace()
+            train_output=F.softmax(train_output)[:,1].detach()
+            
+            acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(train_output, train_labels, 0.5)
             acc_batch = acc_batch_total
             acc['avg_counter_total'].addval(acc_batch_total)
             acc['avg_counter_pos'].addval(acc_batch_pos)
@@ -102,7 +106,7 @@ class Train(basic_train.BasicTrain):
 
             #             acc_image_list = accuracy.topk_with_class(train_output.cpu(), train_labels, path_list, topk=1)
 #             acc_image_list = accuracy.acc_two_class_image(train_output.cpu(), train_labels, path_list, 0.8)
-            accuracy.handle_binary_classification(train_output.cpu(), train_labels, path_list, acc['epoch_acc_image'], 0.5)
+#             accuracy.handle_binary_classification(train_output.cpu()[:,1], train_labels, path_list, acc['epoch_acc_image'], 0.5)
 
             losses.addval(loss.item(), len(train_output))
             time_counter.addval(time.time())
