@@ -2,8 +2,8 @@ import sys
 
 sys.path.append('../')
 import argparse
-from import basic
-from basic import config_base
+import basic
+from basic.config import config_base
 from basic import eval_train
 from basic import eval_test
 from basic.utils import checkpoint
@@ -54,6 +54,8 @@ def eval_main():
         else:
             test_acc = {'avg_counter': counter.Counter(), 'epoch_acc_image': []}
         writer.add_scalar('accuracy in test',test_acc,i)
+        writer.add_scalar('accuracy in train',train_acc,i)
+        writer.add_scalar('accuracy in train',test_acc,i)
         # output pretty info
         save_helper.save(i, model, train_acc, losses, test_acc, time_counter)
         time_counter.addval(time.time(), key='eval epoch %d end' % i)

@@ -13,7 +13,7 @@ import os
 import time
 
 import pdb
-
+from  tensorboardX import SummaryWriter
 sys.path.append('./eval_train')
 parser = argparse.ArgumentParser(description='huangxs eval_main')
 parser.add_argument('-config', metavar='DIR', default='', help='config path')
@@ -32,7 +32,7 @@ def eval_main():
     # load config
     config = config_base.ConfigBase(args.config)
     save_helper = checkpoint.CheckPoint(config)
-
+    writer = SummaryWriter(config.get_config('base','save_folder'))
     # 获取模型    
 #    pdb.set_trace()
     model = reflect.get_model(config)
@@ -52,18 +52,23 @@ def eval_main():
 
     # eval
     time_counter.addval(time.time(), key='model load')
-
+    
     for hard_mining_times in range(10):
         for i in range(train_epoch_start, train_epoch_stop):
             time_counter.addval(time.time(), key='eval epoch %d start' % i)
             if config.get_config("train", 'run_this_module') == True:
                 train_acc, losses = train.train(model, i, hard_mining_times, save_helper)
-
+                writer.add_scalar('avg_counter in train',train_acc['avg_counter'].avg,i)
+                writer.add_scalar('avg_counter_total in train',train_acc['avg_counter_total'].avg,i+hard_mining_times*(train_epoch_start, train_epoch_stop))
+                writer.add_scalar('avg_counter_pos in train',train_acc['avg_counter_pos'].avg,i+hard_mining_times*(train_epoch_start, train_epoch_stop))
+                writer.add_scalar('avg_counter_neg in train',train_acc['avg_counter_neg'].avg,i+hard_mining_times*(train_epoch_start, train_epoch_stop))
+                writer.add_scalar('loss in train',losses.avg,i)
             if config.get_config("validate", 'run_this_module') == True:
                 validate.validate(model, i, hard_mining_times, save_helper)
 
             if config.get_config("test", 'run_this_module') == True:
-                test.test(model, i, hard_mining_times, save_helper)
+                test_acc=test.test(model, i, hard_mining_times, save_helper)
+                
 
             # if i > 0 and i % 11 == 0 and config.get_config("hard", 'run_this_module') == True:
             if config.get_config("hard", 'run_this_module') == True:

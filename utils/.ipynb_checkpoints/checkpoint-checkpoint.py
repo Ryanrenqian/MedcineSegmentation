@@ -4,9 +4,9 @@ import shutil
 import torch
 import pdb
 
-from basic.utils import logs
-from basic.utils import file
-from basic.utils import timeutil
+from  basic.utils import logs
+from  basic.utils import file
+from  basic.utils import timeutil
 import json
 
 best_acc = 0
@@ -139,6 +139,7 @@ class CheckPoint(object):
     def resume_checkpoint(self, resume_path, resume_only_model=False):
         self.log.info('resume from  checkpoint :%s' % resume_path)
         epoch_checkpoint = torch.load(resume_path)
+#         pdb.set_trace()
         self.epoch = epoch_checkpoint['epoch']
         if not resume_only_model:
             self.train_acc_list = epoch_checkpoint['train_acc_list']

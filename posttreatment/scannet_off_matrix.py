@@ -48,26 +48,26 @@ class PostScan():
         
         roi_batch=torch.cat(roi_list,0)
 #         print('roi batch size',roi_batch.shape)
-        sample_size=roi_batch.shape[0]
-        Iteration = int(sample_size/self.mini_batch)
-        opt_list=[]
-        rows=0
-        while(rows*self.mini_batch+self.mini_batch<sample_size):
-            mini_batch=roi_batch[rows*self.mini_batch:(rows+1)*self.mini_batch]
-            opt = self.model(mini_batch)
-            opt =F.softmax(opt)[:,1].cpu().detach()
-            opt_list.append(opt)
-            rows+=1
-        mini_batch=roi_batch[rows*self.mini_batch:sample_size]
-        opt = self.model(mini_batch)
+#         sample_size=roi_batch.shape[0]
+#         Iteration = int(sample_size/self.mini_batch)
+#         opt_list=[]
+#         rows=0
+#         while(rows*self.mini_batch+self.mini_batch<sample_size):
+#             mini_batch=roi_batch[rows*self.mini_batch:(rows+1)*self.mini_batch]
+#             opt = self.model(mini_batch)
+#             opt =F.softmax(opt)[:,1].cpu().detach()
+#             opt_list.append(opt)
+#             rows+=1
+#         mini_batch=roi_batch[rows*self.mini_batch:sample_size]
+        opt = self.model(roi_batch)
         opt =F.softmax(opt)[:,1].cpu().detach()
-        opt_list.append(opt)
-        opt_list=torch.cat(opt_list,0)
-        print('opt_list size',opt_list.shape)
+#         opt_list.append(opt)
+#         opt_list=torch.cat(opt_list,0)
+#         print('opt_list size',opt_list.shape)
         count=0
         for i in range(self.alpha):
             for j in range(self.alpha):
-                opts[i,j,:,:]=opt_list[count]
+                opts[i,j,:,:]=opt[count,]
                 count +=1
 
     def get_dpt(self, block,wi,hi):
@@ -134,70 +134,44 @@ class PostScan():
         st = time.time()
         slide = openslide.open_slide(slide_path)
         basename = os.path.basename(slide_path).rstrip('.tif')
-        w, h = slide.dimensions
-        print(w,h)
-        kh, kw = int(h/(260+max_k*32)),int(w/(260+max_k*32))  #求w,h对应的k值，既能够划分为max_k的block的块数，会有剩余的小块
-        lh, lw = h%(260+max_k*32), w%(260+max_k*32) #求小块的大小
-        lkh,lkw=int((lh-260)/32), int((lw-260)/32) # 求小块的k值
-        print(lkh,lkw)
-        skip_w = 1 # 是否要计算w的最后一块,默认为计算
-        skip_h = 1 # 是否要计算h的最后一块,默认为计算
-        # 初始化final_probability_map的大小
-        if lw-260<0:  # 如果剩余块大小小于260则去掉该块(无法计算)
-            x = 2*(kw * (max_k+1))   # final_probability_map的维度x
-            skip_w = 0
-        else:
-            x = 2*(kw * (max_k+1) + lkw+1)  # final_probability_map的维度x
-        if lh-260<0:  # 如果剩余块大小小于260则去掉该块(无法计算)
-            y = 2*(kh * (max_k+1)) #  final_probability_map的维度y
-            skip_h = 0
-        else:
-            y = 2*(kh * (max_k+1) + lkh+1)  # final_probability_map的维度y
-#         print(skip_h,skip_w)
-        print('time prediction:',(x),'*',(y))
-#         time1=time.time()
-#         print('Init fpm',time1-st)
-        print('fpm size: (%d,%d)'%(x,y))
-        final_probability_map = torch.zeros((x,y)).cpu()  # 初始化final_probability_map
+        w, h = slide.dimensions # slide的宽和高
+        ki, kj = h//(260+max_k*32),w//(260+max_k*32)  # WSI = sum(BLOCk[i,j],i<=ki,j<=kj)
+        print(f'dimension x,y: {w},{h}, block[i,j]:{ki},{kj}')
+        fpm_i = ki*(max_k+1)*2 # fpm有i行
+        fpm_j = kj*(max_k+1)*2 # fpm有j列
+        print(f'fpm_rows:{fpm_i},fpm_columns:{fpm_j}')
+        final_probability_map = torch.zeros((fpm_i,fpm_j)).cpu()  # 初始化final_probability_map
         # 添加位置标记
-        flag_x=0 # 标记fpm x起始位置
-        flag_x_w=0 # 标记x方向的长度
-        flag_y=0 # 标记fpm y起始位置
-        flag_y_h=0 # 标记fpm y方向长度
-        h,w= 0,0 #标记图像y的起始坐标
+        fpm_column=0 # 标记fpm上columns起始位置
+        fpm_row=0 # 标记fpm上rows起始位置
+        size= 2*(max_k+1) # dpt的尺寸
+        x,y= 0,0 #标记图像slide的起始坐标
+        step = 260+max_k*32  # Block的大小,即为在WSI遍历时x,y的步长
+        x,y = 0,8700
+#         fpm_row,fpm_column = 8700,0
+#         block = slide.read_region((x,y),0,(step,step))
+#         dpt = self.get_dpt(block,step,step)
+#         print("fpm loc: (%d,%d,%d,%d)"%(fpm_row,fpm_row+size,fpm_column,fpm_column+size))
+#         final_probability_map[fpm_row:fpm_row+size, fpm_column:fpm_column+size]= dpt
         # 算法效率估计
-        # 将图像按照max_k的值进行切割，会对剩下的小块进行计算
-        for i in range(kh+skip_h):   # 垂直切割
-            # 如果是最后是一个小块
-            if i ==kh: #如果是最后一块,且最后一块是可分割的小块，隐含skip==1的条件
-                    hi = lkh*32+260
-                    flag_y_h=lkh # 最后一小块block中单个ROI的在h上的k值,既单个OPT的h尺寸-1
-            else:
-                hi = max_k*32+260
-                flag_y_h=max_k
-            flag_y_h= 2*(flag_y_h+1) # 该block对应的k值,既DPTS的h尺寸
-            for j in range(kw+skip_w):
-                if j ==kw :  #如果是最后的块,且最后一块是可分割的小块，隐含skip==1的条件
-                    wi = lkw *32+260
-                    flag_x_w=lkw  # 同上
-                else:
-                    wi = max_k*32+260
-                    flag_x_w=max_k
-                flag_x_w= 2*(flag_x_w+1) #同上
-                print('%d row %d line, block size: (%d,%d),loc:(%d,%d)'%(j,i,wi,hi,w,h))                   
-                block = slide.read_region((w,h),0,(wi,hi))
-
-                    # 拼接pts到fpm中  
-                print("fpm loc: (%d,%d,%d,%d)"%(flag_x,flag_x+flag_x_w,flag_y,flag_y+flag_y_h))
-                dpt = self.get_dpt(block,wi,hi)
-
-                final_probability_map[flag_x:flag_x+flag_x_w, flag_y:flag_y+flag_y_h] = dpt
-                flag_x += flag_x_w
-                w += wi
-            flag_y+=flag_y_h
-            flag_x=0
-            w= 0 #回到从0开始  
-            h += hi # h位移
+#         将图像按照max_k的值进行切割，会对剩下的小块进行计算
+        for i in range(ki):   # 第i行block,wsi的y
+            for j in range(kj): #第j列block,wsi的x
+                print(f'block[{i},{j}] size: ({step},{step}),WSI loc:({x},{y})')                   
+                block = slide.read_region((x,y),0,(step,step))
+                # 拼接pts到fpm中  
+                print("fpm _block: (%d,%d,%d,%d)"%(fpm_row,fpm_row+size,fpm_column,fpm_column+size))
+                dpt = self.get_dpt(block,step,step)
+#                 print(f'fpm size of block[{i},{j}] == dpt size of block: {dpt.shape==(size,size)}')
+                final_probability_map[fpm_row:fpm_row+size, fpm_column:fpm_column+size] = dpt
+                fpm_column += size # fpm 列平移
+                x += step # wsi x平移
+                if fpm_column>fpm_j:
+                    print(f'{fpm_column}>{fpm_j}')
+            fpm_row += size # 移动一个row
+            fpm_column =0 #x回到0点
+            x = 0 #回到从0开始  
+            y += step # y位移
 
         if self.save:
             npfpm=final_probability_map.numpy()
@@ -255,7 +229,9 @@ pth = '/root/workspace/renqian/0929/save/camelyon16/scannet_train_MSE_NCRF_40w_p
 model = Scannet().cuda()
 model = torch.nn.DataParallel(model,device_ids=[ 0,1,2,3])
 model.load_state_dict(torch.load(pth)['model_state'])
-save_npy='/root/workspace/renqian/0929/scannet/11_5'
+save_npy='/root/workspace/renqian/0929/scannet/11_20/'
+if not os.path.exists(save_npy):
+    os.mkdir(save_npy)
 post = PostScan(scannet=model,save=save_npy)
 # 增加断点保存功能
 saved=[]
@@ -265,7 +241,9 @@ for parent, dirnames, filenames in os.walk(save_npy):
 print('saved:',saved)  
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
-#     print(filename in saved)
+#     if filename == 'test_002':
+#         final_probability_map=post.finalprobmap(slide_path,max_k=10)
+    print(filename in saved)
     if filename in saved:
         continue
     print(slide_path)

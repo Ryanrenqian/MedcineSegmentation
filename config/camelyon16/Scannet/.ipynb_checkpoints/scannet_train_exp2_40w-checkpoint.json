@@ -15,9 +15,9 @@
     },
     "checkpoint_save_freq": 1,
     "epoch_save_freq": 1,
-    "last_run_date": "2019-11-18_09-06-48",
+    "last_run_date": "2019-11-19_04-24-01",
     "last_run_machine": "no specific machine",
-    "resume_checkpoint": "",
+    "resume_checkpoint": "/root/workspace/renqian/1115/result/exp2/2019-11-19_04-24-01/hardmine_0_epoch_120_type_train_model.pth",
     "resume_only_model": true,
     "patch_size": 256,
     "crop_size": 244
@@ -30,7 +30,7 @@
     "params": {}
   },
   "train": {
-    "run_this_module": true,
+    "run_this_module": false,
     "module_name": "camelyon_train",
     "class_name": "Train",
     "image_normalize": "camelyon16",
@@ -63,8 +63,8 @@
     }
   },
   "test": {
-    "run_this_module": false,
-    "start_index": 60,
+    "run_this_module": true,
+    "start_index": 0,
     "end_index": 0,
     "module_name": "camelyon_test",
     "class_name": "Test",

@@ -121,7 +121,7 @@ class Train(basic_train.BasicTrain):
                         loss.item(),
                         losses.avg,
                         time_counter.interval()), '\r')
-        self.optimizer_schedule.step()
+#         self.optimizer_schedule.step()
 
         # 2.2 保存好输出的结果，不要加到循环日志中去
         save_helper.save_epoch_pred(acc['epoch_acc_image'],

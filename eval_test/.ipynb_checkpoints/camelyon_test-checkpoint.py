@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from basic.eval_test import BasicTest
 from basic.utils import image_transform
-from basic import camelyon_data
+from basic.data import camelyon_data
 from basic.utils import logs
 from basic.utils import counter
 from basic.utils import accuracy
@@ -109,16 +109,16 @@ class Test(BasicTest):
                     test_input = Variable(test_input.type(torch.FloatTensor))
                 #             test_input = Variable(test_input.type(torch.FloatTensor))
                 test_output = _model(test_input)
-                
+#                 test_output=F.softmax(test_output)[:,1].detach()
                 # google net在test时没用使用aux
-                test_output = self.after_model_output(test_output, self.config)
+#                 test_output = self.after_model_output(test_output, self.config)
                 test_output = test_output.cpu()
                 batch_labels = Variable(batch_labels.type(torch.FloatTensor))
 
                 # 结果处理，计算acc
                 #             top1 = accuracy.topk(test_output.cpu(), batch_labels, top=(1,))
                 #             acc['avg_counter'].addval(top1[0], len(test_output))
-                test_output=test_output.squeeze()
+#                 test_output=test_output.squeeze()
 #                 pdb.set_trace()
                 test_output=F.softmax(test_output)[:,1]
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(test_output.cpu(), batch_labels, 0.5)
