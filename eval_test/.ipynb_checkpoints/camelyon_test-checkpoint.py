@@ -129,7 +129,7 @@ class Test(BasicTest):
                 acc['avg_counter'].addval(acc_batch)
 
                 # acc_image_list = accuracy.topk_with_class(test_output.cpu(), batch_labels, path_list, topk=1)
-                accuracy.handle_binary_classification(test_output.cpu(), batch_labels, path_list, acc['epoch_acc_image'], 0.8)
+                accuracy.handle_binary_classification(test_output.cpu(), batch_labels, path_list, acc['epoch_acc_image'], 0.5)
                 time_counter.addval(time.time())
                 self.log.info(
                     'test epoch slide:%d/%d %s,batch iter:%d/%d,acc-iter/avg:[%.2f/%.2f]-[%.2f--%.2f--%.2f], time consume:%.2f s' % (
@@ -151,7 +151,6 @@ class Test(BasicTest):
                 ('\ntest epoch slide time consume:%.2f s' % (time_counter.key_interval(key_ed='test epoch end',
                                                                                        key_st='test epoch start'))))
             test_dataset.slide.close()
-
-            
+            return acc
             
             

@@ -40,9 +40,7 @@ def eval_main():
         model.load_state_dict(save_helper.model_state)
 
     train, validate, test, hard = get_instance(config, model)
-    train_epoch_start = 0 if config.get_config("train", 'start_epoch') == None else config.get_config("train",
-                                                                                                      'start_epoch')
-    train_epoch_stop = config.get_config("train", 'total_epoch')
+    
     if args.resume:
         # TODO 增加resume的方式
         pass
@@ -52,35 +50,18 @@ def eval_main():
 
     # eval
     time_counter.addval(time.time(), key='model load')
-    
-    for hard_mining_times in range(10):
-        for i in range(train_epoch_start, train_epoch_stop):
+    hard_mining_times=0
+    if config.get_config("train", 'run_this_module') == True:
+        train.train(model, hard_mining_times, save_helper,config,writer=writer)
+    if config.get_config("test", 'run_this_module') == True:
+        test_acc=test.test(model, 0, hard_mining_times, save_helper)
+    # tain with hard_minning
+    if config.get_config("hard", 'run_this_module') == True:
+        for hard_mining_times in range(10):
             time_counter.addval(time.time(), key='eval epoch %d start' % i)
-            if config.get_config("train", 'run_this_module') == True:
-                train_acc, losses = train.train(model, i, hard_mining_times, save_helper)
-                writer.add_scalar('avg_counter in train',train_acc['avg_counter'].avg,i)
-                writer.add_scalar('avg_counter_total in train',train_acc['avg_counter_total'].avg,i+hard_mining_times*(train_epoch_start, train_epoch_stop))
-                writer.add_scalar('avg_counter_pos in train',train_acc['avg_counter_pos'].avg,i+hard_mining_times*(train_epoch_start, train_epoch_stop))
-                writer.add_scalar('avg_counter_neg in train',train_acc['avg_counter_neg'].avg,i+hard_mining_times*(train_epoch_start, train_epoch_stop))
-                writer.add_scalar('loss in train',losses.avg,i)
-            if config.get_config("validate", 'run_this_module') == True:
-                validate.validate(model, i, hard_mining_times, save_helper)
-
-            if config.get_config("test", 'run_this_module') == True:
-                test_acc=test.test(model, i, hard_mining_times, save_helper)
-                
-
-            # if i > 0 and i % 11 == 0 and config.get_config("hard", 'run_this_module') == True:
-            if config.get_config("hard", 'run_this_module') == True:
-                print('\n', i)
-                hard_acc = hard.hard(model, i, hard_mining_times, save_helper)
-                # 挖掘完后重新开始训练和挖掘
-                # hard.reload_data()
-                # train.reload_data()
-                # 重置学习率，但保留之前的模型
-                # train.init_optimizer(model)
-                break
-
+            train.train(model,  hard_mining_times, save_helper,writer,config)
+            test_acc=test.test(model, 0, hard_mining_times, save_helper)
+            hard_acc = hard.hard(model, i, hard_mining_times+1, save_helper)
             # output pretty info,保存模型
             # save_helper.save(i, model, train_acc, losses, test_acc, time_counter)
             time_counter.addval(time.time(), key='eval epoch %d end' % i)

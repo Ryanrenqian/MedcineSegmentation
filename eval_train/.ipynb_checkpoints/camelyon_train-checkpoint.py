@@ -58,10 +58,10 @@ class Train(basic_train.BasicTrain):
         _params = self.cfg('params')
         self.optimizer = torch.optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
-#         self.optimizer_schedule = optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
-#                                                             gamma=_params['lr_decay_factor'], last_epoch=-1)
+        self.optimizer_schedule = optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
+                                                            gamma=_params['lr_decay_factor'], last_epoch=-1)
 
-    def train(self, _model, epoch, hard_mining_times, save_helper):
+    def train(self, _model,  hard_mining_times, save_helper,config,writer=None):
         """单个epoch的train 参数在epoch中是原子操作
         :过程保存：1.将单轮epoch中对每个样本的分类情况记录下来 2.将模型通过checkpoint保存
         :
@@ -77,58 +77,62 @@ class Train(basic_train.BasicTrain):
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
+        train_epoch_start = 0 if config.get_config("train", 'start_epoch') == None else config.get_config("train",
+                                                                                                      'start_epoch')
+        train_epoch_stop = config.get_config("train", 'total_epoch')
+        
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')
-        for i, data in enumerate(self.train_loader, 0):
-            train_input, train_labels, path_list = data
-            if torch.cuda.is_available():
-                train_input = Variable(train_input.type(torch.cuda.FloatTensor))
-            else:
-                train_input = Variable(train_input.type(torch.FloatTensor))
-#             
-            train_output = _model(train_input).squeeze().cpu()
-#             pdb.set_trace()
-#             train_output = self.after_model_output(train_output, self.config)  
-            loss = criterion(train_output, train_labels) 
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-#             pdb.set_trace()
-            train_output=F.softmax(train_output)[:,1].detach()
-            
-            acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(train_output, train_labels, 0.5)
-            acc_batch = acc_batch_total
-            acc['avg_counter_total'].addval(acc_batch_total)
-            acc['avg_counter_pos'].addval(acc_batch_pos)
-            acc['avg_counter_neg'].addval(acc_batch_neg)
-            acc['avg_counter'].addval(acc_batch)
+        iteration=0
+        for epoch in range(train_epoch_start, train_epoch_stop):
+            for i, data in enumerate(self.train_loader, 0):
+                iteration +=1
+                train_input, train_labels, path_list = data
+                if torch.cuda.is_available():
+                    train_input = Variable(train_input.type(torch.cuda.FloatTensor))
+                else:
+                    train_input = Variable(train_input.type(torch.FloatTensor))
+                train_output = _model(train_input).squeeze().cpu()
+    #             pdb.set_trace()
+                loss = criterion(train_output, train_labels) 
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+    #             pdb.set_trace()
+                train_output=F.softmax(train_output)[:,1].detach()
+                acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(train_output, train_labels, 0.5)
+                acc_batch = acc_batch_total
+                writer.add_scalar('acc_batch_total in train',acc_batch,iteration)
+                writer.add_scalar('acc_batch_total in train',acc_batch_total,iteration)
+                writer.add_scalar('acc_batch_pos in train',acc_batch_pos,iteration)
+                writer.add_scalar('acc_batch_neg in train',acc_batch_neg,iteration)
+                writer.add_scalar('loss in train',loss.item(),iteration)
+                acc['avg_counter_total'].addval(acc_batch_total)
+                acc['avg_counter_pos'].addval(acc_batch_pos)
+                acc['avg_counter_neg'].addval(acc_batch_neg)
+                acc['avg_counter'].addval(acc_batch)
+                losses.addval(loss.item(), len(train_output))
+                time_counter.addval(time.time())
+                #             pdb.set_trace()
+                if i % self.config.get_config('base', 'print_freq', 'batch_iter') == 0:
+                    self.log.info(
+                        'train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, train_acc-iter/avg:[%.2f/%.2f]-[%.2f--%.2f--%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
+                            epoch, self.config.get_config('train', 'total_epoch'), i, len(self.train_loader),
+                            self.optimizer.state_dict()['param_groups'][0]['lr'], acc_batch,
+                            acc['avg_counter'].avg,
+                            acc['avg_counter_total'].avg, acc['avg_counter_pos'].avg, acc['avg_counter_neg'].avg,
+                            loss.item(),
+                            losses.avg,
+                            time_counter.interval()), '\r')
+            self.optimizer_schedule.step()
 
-            #             acc_image_list = accuracy.topk_with_class(train_output.cpu(), train_labels, path_list, topk=1)
-#             acc_image_list = accuracy.acc_two_class_image(train_output.cpu(), train_labels, path_list, 0.8)
-#             accuracy.handle_binary_classification(train_output.cpu()[:,1], train_labels, path_list, acc['epoch_acc_image'], 0.5)
+            # 2.2 保存好输出的结果，不要加到循环日志中去
+            save_helper.save_epoch_pred(acc['epoch_acc_image'],
+                                        'train_hardmine_%d_epoch_%d.txt' % (hard_mining_times, epoch))
+            save_helper.save_epoch_model(hard_mining_times, epoch, 'train', acc, losses, _model)
 
-            losses.addval(loss.item(), len(train_output))
-            time_counter.addval(time.time())
-            #             pdb.set_trace()
-            if i % self.config.get_config('base', 'print_freq', 'batch_iter') == 0:
-                self.log.info(
-                    'train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, train_acc-iter/avg:[%.2f/%.2f]-[%.2f--%.2f--%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
-                        epoch, self.config.get_config('train', 'total_epoch'), i, len(self.train_loader),
-                        self.optimizer.state_dict()['param_groups'][0]['lr'], acc_batch,
-                        acc['avg_counter'].avg,
-                        acc['avg_counter_total'].avg, acc['avg_counter_pos'].avg, acc['avg_counter_neg'].avg,
-                        loss.item(),
-                        losses.avg,
-                        time_counter.interval()), '\r')
-#         self.optimizer_schedule.step()
-
-        # 2.2 保存好输出的结果，不要加到循环日志中去
-        save_helper.save_epoch_pred(acc['epoch_acc_image'],
-                                    'train_hardmine_%d_epoch_%d.txt' % (hard_mining_times, epoch))
-        save_helper.save_epoch_model(hard_mining_times, epoch, 'train', acc, losses, _model)
-
-        time_counter.addval(time.time(), key='training epoch end')
-        self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
-                                                                                        key_st='training epoch start'))))
-        return acc, losses
+            time_counter.addval(time.time(), key='training epoch end')
+            self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
+                                                                                            key_st='training epoch start'))))
+#         return acc, losses
