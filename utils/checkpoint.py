@@ -35,7 +35,9 @@ class CheckPoint(object):
         config.update_config(os.path.join(self.save_folder, 'config.json'))
 
     def save_epoch_pred(self, epoch_image_results, txt_name):
-        save_name = os.path.join(self.save_folder, txt_name)
+        pre_save=os.path.join(self.config.get_config('base', 'save_folder'), 'test_result')
+        file.check_mkdir(pre_save)
+        save_name = os.path.join(pre_save, txt_name)
         print('\nsave file to %s' % save_name)
         f = open(save_name, 'w')
         f.writelines(json.dumps(epoch_image_results, indent=4))

@@ -33,8 +33,8 @@ class Train(basic_train.BasicTrain):
         save_folder = os.path.join(self.config.get_config('base', 'save_folder'),
                                    self.config.get_config('base', 'last_run_date'))
         self.log = logs.Log(os.path.join(save_folder, "log.txt"))
-
         self.train_loader = self.load_data()
+        self.valid_loader = self.load_validation()
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
     def cfg(self, name):
@@ -49,9 +49,16 @@ class Train(basic_train.BasicTrain):
     def load_data(self):
         _size = self.config.get_config('base', 'crop_size')
         train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
-        train_dataset = camelyon_data.EvalDataset(self.config.get_config('base', 'train_list'),
+        train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),
                                                   transform=train_transform, tif_folder=self.config.get_config('base', 'train_tif_folder'))
         return torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
+                                           shuffle=True, num_workers=self.cfg('num_workers'))
+    def load_validation(self):
+        _size = self.config.get_config('base', 'crop_size')
+        train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
+        validation_dataset = camelyon_data.EvalDataset(self.config.get_config('validate', 'vailidation_list'),
+                                                  transform=train_transform, tif_folder=self.config.get_config('base', 'train_tif_folder'))
+        return torch.utils.data.DataLoader(validation_dataset, batch_size=self.cfg('batch_size'),
                                            shuffle=True, num_workers=self.cfg('num_workers'))
 
     def init_optimizer(self, _model):
@@ -60,8 +67,17 @@ class Train(basic_train.BasicTrain):
                                          weight_decay=_params['weight_decay'])
         self.optimizer_schedule = optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
                                                             gamma=_params['lr_decay_factor'], last_epoch=-1)
-
-    def train(self, _model,  hard_mining_times, save_helper,config,writer=None):
+    
+    def valid(self,_model,writer,epoch):
+        model.eval()
+        for i,data in enumerate(self.valid_loader,0):
+            pass
+        return best,epoch
+            
+            
+        
+    
+    def train(self, _model,  hard_mining_times, save_helper,config,writer,validation):
         """单个epoch的train 参数在epoch中是原子操作
         :过程保存：1.将单轮epoch中对每个样本的分类情况记录下来 2.将模型通过checkpoint保存
         :
@@ -108,6 +124,7 @@ class Train(basic_train.BasicTrain):
                 writer.add_scalar('acc_batch_pos in train',acc_batch_pos,iteration)
                 writer.add_scalar('acc_batch_neg in train',acc_batch_neg,iteration)
                 writer.add_scalar('loss in train',loss.item(),iteration)
+                writer.add_scalar('Lr',self.optimizer.state_dict()['param_groups'][0]['lr'])
                 acc['avg_counter_total'].addval(acc_batch_total)
                 acc['avg_counter_pos'].addval(acc_batch_pos)
                 acc['avg_counter_neg'].addval(acc_batch_neg)
@@ -117,16 +134,19 @@ class Train(basic_train.BasicTrain):
                 #             pdb.set_trace()
                 if i % self.config.get_config('base', 'print_freq', 'batch_iter') == 0:
                     self.log.info(
-                        'train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, train_acc-iter/avg:[%.2f/%.2f]-[%.2f--%.2f--%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
-                            epoch, self.config.get_config('train', 'total_epoch'), i, len(self.train_loader),
-                            self.optimizer.state_dict()['param_groups'][0]['lr'], acc_batch,
-                            acc['avg_counter'].avg,
-                            acc['avg_counter_total'].avg, acc['avg_counter_pos'].avg, acc['avg_counter_neg'].avg,
-                            loss.item(),
-                            losses.avg,
-                            time_counter.interval()), '\r')
+                    'train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, acc-iter/avg:[%.2f/%.2f]-[avg:%.2f-pos:%.2f-neg:%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
+                        epoch, self.config.get_config('train', 'total_epoch'), i, len(self.train_loader),
+                        self.optimizer.state_dict()['param_groups'][0]['lr'], acc_batch,
+                        acc['avg_counter'].avg,
+                        acc['avg_counter_total'].avg, acc['avg_counter_pos'].avg, acc['avg_counter_neg'].avg,
+                        loss.item(),
+                        losses.avg,
+                        time_counter.interval()), '\r')
+#                     self.log.info(f'train new epoch:{epoch}/{self.config.get_config('train', 'total_epoch')},batch iter:{i}/{len(self.train_loader)}, lr:{self.optimizer.state_dict()['param_groups'][0]['lr']:.10f}, train_acc-iter/avg:[{acc_batch:.2f}/{acc['avg_counter'].avg:.2f}]-[%{acc['avg_counter_total'].avg:.2f}--{acc['avg_counter_pos'].avg:.2f}--{acc['avg_counter_neg'].avg:.2f}], loss:{loss.item():.2f}/{losses.avg:.2f},time consume:{time_counter.interval():.2f} s \r')
             self.optimizer_schedule.step()
-
+            # 增加validation部分
+            if validation:
+                best_epoch=self.valid(_model,writer,epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
             save_helper.save_epoch_pred(acc['epoch_acc_image'],
                                         'train_hardmine_%d_epoch_%d.txt' % (hard_mining_times, epoch))
@@ -136,3 +156,4 @@ class Train(basic_train.BasicTrain):
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
                                                                                             key_st='training epoch start'))))
 #         return acc, losses
+        

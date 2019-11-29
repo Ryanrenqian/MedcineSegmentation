@@ -6,18 +6,15 @@
     "dataset": "camelyon16",
     "train_tif_folder": "/root/workspace/dataset/CAMELYON16/training/*",
     "test_tif_folder": "/root/workspace/dataset/CAMELYON16/testing/images",
-    "train_list": "/root/workspace/renqian/1115/patch_list/exp4/train_patch.list",
-    "hard_mining_list": "",
-    "test_list": "/root/workspace/huangxs/prepare_data/16/patch_list/camelyon16_64_all_test.txt",
     "print_freq": {
       "epoch": 1,
       "batch_iter": 1
     },
     "checkpoint_save_freq": 1,
     "epoch_save_freq": 1,
-    "last_run_date": "2019-11-28_11-44-13",
+    "last_run_date": "2019-11-29_03-47-32",
     "last_run_machine": "no specific machine",
-    "resume_checkpoint": "",
+    "resume_checkpoint": "/root/workspace/renqian/1115/result/exp4/2019-11-28_11-44-13/hardmine_0_epoch_31_type_train_model.pth",
     "resume_only_model": true,
     "patch_size": 256,
     "crop_size": 244
@@ -30,7 +27,8 @@
     "params": {}
   },
   "train": {
-    "run_this_module": true,
+    "train_list": "/root/workspace/renqian/1115/patch_list/exp4/train_patch.list",
+    "run_this_module": false,
     "module_name": "camelyon_train",
     "class_name": "Train",
     "image_normalize": "camelyon16",
@@ -43,7 +41,7 @@
       "lr_decay_epoch": 5,
       "lr_decay_factor": 0.1,
       "patience": 2,
-      "threshold": 0.005,
+      "threshold": 5e-05,
       "momentum": 0.9,
       "weight_decay": 0.0001,
       "criterion": "CrossEntropyLoss",
@@ -52,6 +50,7 @@
   },
   "validate": {
     "run_this_module": false,
+    "vailidation_list": "",
     "module_name": "camelyon_validate",
     "class_name": "Validate",
     "image_normalize": "camelyon16",
@@ -63,9 +62,10 @@
     }
   },
   "test": {
-    "run_this_module": false,
-    "start_index": 0,
-    "end_index": 0,
+    "run_this_module": true,
+    "test_list": "/root/workspace/huangxs/prepare_data/16/patch_list/camelyon16_64_all_test.txt",
+    "start_index": 2,
+    "end_index": 131,
     "module_name": "camelyon_test",
     "class_name": "Test",
     "image_normalize": "camelyon16",
@@ -78,6 +78,7 @@
   },
   "hard": {
     "run_this_module": false,
+    "hard_mining_list": "",
     "module_name": "camelyon_hard",
     "class_name": "Hard",
     "image_normalize": "camelyon16",

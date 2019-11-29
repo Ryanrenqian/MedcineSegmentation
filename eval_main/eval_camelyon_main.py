@@ -51,11 +51,12 @@ def eval_main():
     # eval
     time_counter.addval(time.time(), key='model load')
     hard_mining_times=0
+    validation= config.get_config("test", 'run_this_module')
     if config.get_config("train", 'run_this_module') == True:
-        train.train(model, hard_mining_times, save_helper,config,writer=writer)
-    if config.get_config("test", 'run_this_module') == True:
-        test_acc=test.test(model, 0, hard_mining_times, save_helper)
+        train.train(model, hard_mining_times, save_helper,config,writer,validation)
     # tain with hard_minning
+    if config.get_config('test','run_this_module') ==True:
+        test.test(model, 0, hard_mining_times, save_helper)
     if config.get_config("hard", 'run_this_module') == True:
         for hard_mining_times in range(10):
             time_counter.addval(time.time(), key='eval epoch %d start' % i)

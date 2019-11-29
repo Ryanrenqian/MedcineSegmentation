@@ -42,7 +42,7 @@ class Test(BasicTest):
     def load_data(self):
         _size = self.config.get_config('base', 'crop_size')
         test_transform = image_transform.get_test_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
-        test_dataset = camelyon_data.TestDataset(self.config.get_config('base', 'test_list'),
+        test_dataset = camelyon_data.TestDataset(self.config.get_config('test', 'test_list'),
                                                  transform=test_transform,
                                                  tif_folder=self.config.get_config('base', 'test_tif_folder'),
                                                  patch_size=self.config.get_config('base', 'patch_size'))
@@ -59,7 +59,7 @@ class Test(BasicTest):
         # 1.1 读取数据
         print('start loading test list')
         load_time = time.time()
-        _f = open(self.config.get_config('base', 'test_list'), 'r')
+        _f = open(self.config.get_config('test', 'test_list'), 'r')
         content = _f.read()
         print('read txt from  disk complete!', time.time() - load_time)
         patch_dict = json.loads(content)
@@ -82,10 +82,10 @@ class Test(BasicTest):
         # 2.以slide_name为维度去test
         slide_name_list = list(slide_patch_dict.keys())
         slide_name_list.sort()
-        
         start_index = self.config.get_config('test', 'start_index')
         end_index = self.config.get_config('test', 'end_index')
         end_index = end_index if end_index!=0 else len(slide_name_list)
+        print(start_index,end_index)
         _size = self.config.get_config('base', 'crop_size')
         for slide_index in range(start_index, end_index):
             slide_name = slide_name_list[slide_index]
@@ -138,19 +138,14 @@ class Test(BasicTest):
                         acc['avg_counter'].avg,
                         acc['avg_counter_total'].avg, acc['avg_counter_pos'].avg, acc['avg_counter_neg'].avg,
                         time_counter.interval()), end='\r')
-                pass
 
             # 2.2 保存好输出的结果，不要加到循环日志中去
-            save_helper.save_epoch_pred(acc['epoch_acc_image'],
+        save_helper.save_epoch_pred(acc['epoch_acc_image'],
                                         'test_hardmine_%d_epoch_%d_slide_%s.txt' % (
                                         hard_mining_times, epoch, slide_name))
-            save_helper.save_epoch_model(hard_mining_times, epoch, 'test', acc, None, _model)
-
-            time_counter.addval(time.time(), key='test epoch end')
-            self.log.info(
-                ('\ntest epoch slide time consume:%.2f s' % (time_counter.key_interval(key_ed='test epoch end',
-                                                                                       key_st='test epoch start'))))
-            test_dataset.slide.close()
-            return acc
+        save_helper.save_epoch_model(hard_mining_times, epoch, 'test', acc, None, _model)
+        time_counter.addval(time.time(), key='test epoch end')
+        test_dataset.slide.close()
+        return acc
             
             
