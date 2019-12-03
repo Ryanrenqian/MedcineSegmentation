@@ -47,18 +47,7 @@ class PostScan():
         '''
         
         roi_batch=torch.cat(roi_list,0)
-#         print('roi batch size',roi_batch.shape)
-#         sample_size=roi_batch.shape[0]
-#         Iteration = int(sample_size/self.mini_batch)
-#         opt_list=[]
-#         rows=0
-#         while(rows*self.mini_batch+self.mini_batch<sample_size):
-#             mini_batch=roi_batch[rows*self.mini_batch:(rows+1)*self.mini_batch]
-#             opt = self.model(mini_batch)
-#             opt =F.softmax(opt)[:,1].cpu().detach()
-#             opt_list.append(opt)
-#             rows+=1
-#         mini_batch=roi_batch[rows*self.mini_batch:sample_size]
+
         opt = self.model(roi_batch)
         opt =F.softmax(opt)[:,1].cpu().detach()
 #         opt_list.append(opt)

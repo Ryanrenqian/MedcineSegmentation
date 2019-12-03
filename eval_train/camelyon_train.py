@@ -149,4 +149,5 @@ class Train(basic_train.BasicTrain):
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
                                                                                             key_st='training epoch start'))))
 #         return acc, losses
+
         

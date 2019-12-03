@@ -85,7 +85,7 @@ class Test(BasicTest):
         start_index = self.config.get_config('test', 'start_index')
         end_index = self.config.get_config('test', 'end_index')
         end_index = end_index if end_index!=0 else len(slide_name_list)
-        print(start_index,end_index)
+#         print(start_index,end_index)
         _size = self.config.get_config('base', 'crop_size')
         for slide_index in range(start_index, end_index):
             slide_name = slide_name_list[slide_index]
@@ -140,12 +140,11 @@ class Test(BasicTest):
                         time_counter.interval()), end='\r')
 
             # 2.2 保存好输出的结果，不要加到循环日志中去
-        save_helper.save_epoch_pred(acc['epoch_acc_image'],
-                                        'test_hardmine_%d_epoch_%d_slide_%s.txt' % (
-                                        hard_mining_times, epoch, slide_name))
-        save_helper.save_epoch_model(hard_mining_times, epoch, 'test', acc, None, _model)
-        time_counter.addval(time.time(), key='test epoch end')
-        test_dataset.slide.close()
+            save_helper.save_epoch_pred(acc['epoch_acc_image'],
+                                            'test_hardmine_%d_epoch_%d_slide_%s.txt' % (
+                                            hard_mining_times, epoch, slide_name))
+            save_helper.save_epoch_model(hard_mining_times, epoch, 'test', acc, None, _model)
+            time_counter.addval(time.time(), key='test epoch end')
+            test_dataset.slide.close()
         return acc
-            
             
