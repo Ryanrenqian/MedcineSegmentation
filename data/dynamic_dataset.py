@@ -58,10 +58,10 @@ class ListDataset(data.Dataset):
 
 
 class DynamicDataset():
-    def __init__(self,normal_list,tumor_list):
+    def __init__(self,normal_list,tumor_list, tif_folder='/root/workspace/dataset/CAMELYON16/training/*'):
         normal=
-        self.tumor = ListDataset(tumor_list)
-        self.normal = ListDataset(normal_list)
+        self.tumor = ListDataset(tumor_list,tif_folder)
+        self.normal = ListDataset(normal_list,tif_folder)
 
     def sample(self,data_size,replacement=False):
         tumor = data.RandomSampler(self.tumor,replacement,data_size/2)

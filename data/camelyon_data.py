@@ -10,9 +10,9 @@ import os
 import pdb
 import time
 import numpy as np
-
+from
 class EvalDataset(data.Dataset):
-    def __init__(self, _patch_list_txt, transform=None, tif_folder='/root/workspace/dataset/CAMELYON16/training/*',
+    def __init__(self, _patch_list_txt,  tif_folder='/root/workspace/dataset/CAMELYON16/training/*',
                  patch_size=256):
         """
         _patch_list_txt：
@@ -28,7 +28,6 @@ class EvalDataset(data.Dataset):
         self.patch_dict = json.loads(_f.read())
         self.patch_name_list = [crop for crop in self.patch_dict.keys()]
         self.patch_size = patch_size
-        self.transform = transform
         # 添加所有的slide缓存，从缓存中取数据
         self.slide_dict = {}
         for tif in tif_list:
