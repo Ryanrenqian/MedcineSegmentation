@@ -86,10 +86,6 @@ class Train(basic_train.BasicTrain):
         _model.train()
 
         criterion = nn.CrossEntropyLoss()
-        # criterion = nn.BCEWithLogitsLoss().cuda() # 对应的model只改了 models.__dict__['resnet18'](pretrained=False, num_classes=1)
-#         criterion = nn.MSELoss().cuda()
-
-        #         pdb.set_trace()
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
@@ -142,7 +138,6 @@ class Train(basic_train.BasicTrain):
                         loss.item(),
                         losses.avg,
                         time_counter.interval()), '\r')
-#                     self.log.info(f'train new epoch:{epoch}/{self.config.get_config('train', 'total_epoch')},batch iter:{i}/{len(self.train_loader)}, lr:{self.optimizer.state_dict()['param_groups'][0]['lr']:.10f}, train_acc-iter/avg:[{acc_batch:.2f}/{acc['avg_counter'].avg:.2f}]-[%{acc['avg_counter_total'].avg:.2f}--{acc['avg_counter_pos'].avg:.2f}--{acc['avg_counter_neg'].avg:.2f}], loss:{loss.item():.2f}/{losses.avg:.2f},time consume:{time_counter.interval():.2f} s \r')
             self.optimizer_schedule.step()
             # 增加validation部分
             if validation:

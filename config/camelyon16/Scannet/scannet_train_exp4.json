@@ -12,7 +12,7 @@
     },
     "checkpoint_save_freq": 1,
     "epoch_save_freq": 1,
-    "last_run_date": "2019-11-29_03-47-32",
+    "last_run_date": "2019-11-30_01-15-02",
     "last_run_machine": "no specific machine",
     "resume_checkpoint": "/root/workspace/renqian/1115/result/exp4/2019-11-28_11-44-13/hardmine_0_epoch_31_type_train_model.pth",
     "resume_only_model": true,

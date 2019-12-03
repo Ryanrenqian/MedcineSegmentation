@@ -60,14 +60,11 @@ def eval_main():
     if config.get_config("hard", 'run_this_module') == True:
         for hard_mining_times in range(10):
             time_counter.addval(time.time(), key='eval epoch %d start' % i)
-            train.train(model,  hard_mining_times, save_helper,writer,config)
-            test_acc=test.test(model, 0, hard_mining_times, save_helper)
             hard_acc = hard.hard(model, i, hard_mining_times+1, save_helper)
-            # output pretty info,保存模型
-            # save_helper.save(i, model, train_acc, losses, test_acc, time_counter)
+            train.train(model,  hard_mining_times, save_helper,writer,config)
             time_counter.addval(time.time(), key='eval epoch %d end' % i)
             save_helper.finish(i, train_epoch_start, train_epoch_stop)
-        pass
+
 
 
 def get_instance(_config, _model):
