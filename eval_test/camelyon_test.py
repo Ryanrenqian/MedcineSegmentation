@@ -148,4 +148,3 @@ class Test(BasicTest):
             test_dataset.slide.close()
         return acc
             
-            
