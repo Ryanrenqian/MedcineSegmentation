@@ -10,7 +10,7 @@ import os
 import pdb
 import time
 import numpy as np
-from
+from dynamic_dataset import *
 class EvalDataset(data.Dataset):
     def __init__(self, _patch_list_txt,  tif_folder='/root/workspace/dataset/CAMELYON16/training/*',
                  patch_size=256):
