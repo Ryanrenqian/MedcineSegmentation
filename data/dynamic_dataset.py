@@ -70,7 +70,7 @@ class DynamicDataset():
         self.data_size =data_size
         self.replacement=replacement
 
-    def sample(self,):
+    def sample(self):
         tumor = data.RandomSampler(self.tumor,self.replacement,self.data_size//2)
         normal =data.RandomSampler(self.tumor,self.replacement,self.data_size//2)
-        return data.ConcatDataset([tumor,normal])
+        return data.ConcatDataset([self.tumor[tumor],self.normal[normal]])
