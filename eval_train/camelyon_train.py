@@ -52,7 +52,7 @@ class Train(basic_train.BasicTrain):
         if self.config.get_config('train','method') == 'base':
             train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),
                                                       transform=train_transform,
-                                                      tif_folder=self.config.get_config('base', 'train_tif_folder')
+                                                      tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                       patch_size=self.config.get_config('base', 'patch_size'))
         elif self.config.get_config('train','method') == 'on_the_fly':
             dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
