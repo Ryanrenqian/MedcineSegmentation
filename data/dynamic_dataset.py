@@ -12,7 +12,7 @@ import time
 import numpy as np
 
 class ListDataset(data.Dataset):
-    def __init__(self, list_file,transform=None, tif_folder='/root/workspace/dataset/CAMELYON16/training/*',
+    def __init__(self, list_file,transform=None,all_class=None, tif_folder='/root/workspace/dataset/CAMELYON16/training/*',
                  patch_size=256):
         """
         _patch_list_txt：
@@ -25,7 +25,9 @@ class ListDataset(data.Dataset):
         tif_list = glob.glob(os.path.join(tif_folder, '*.tif'))
         tif_list.sort()
         with open(list_file,'r')as f:
-            self.normal_list=f.readlines()
+            self.patch_name_list=f.readlines()
+        if all_class:
+            self.all_class=all_class
         self.patch_size = patch_size
         self.transform = transform
         # 添加所有的slide缓存，从缓存中取数据
@@ -35,7 +37,7 @@ class ListDataset(data.Dataset):
             self.slide_dict[basename] = tif
 
     def __getitem__(self, index):
-        patch_name = self.patch_name_list[index]
+        patch_name,class_id = self.patch_name_list[index].rstrip().split()
         class_id = self.patch_dict[patch_name]
         slide_name = patch_name.split('.tif_')[0] + '.tif'
         slide = openslide.OpenSlide(self.slide_dict[slide_name])  # 直接在这里使用对速度没有明显影响，但slide的缓存会较少很多
