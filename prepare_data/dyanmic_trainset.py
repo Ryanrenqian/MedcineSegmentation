@@ -41,13 +41,13 @@ def generate_patch_from_slide(slide_basename, normal_file,tumor_file, otsu_dict,
         level0_x, level0_y = int((_x+0.5) * down_sample), int((_y+0.5) * down_sample)
         if slide_is_tumor:
             if slide_gt_mask[_x, _y] > 0:
-                tumor_file.write('%s.tif_%04d_%04d' % (slide_basename, level0_x, level0_y))
+                tumor_file.write('%s.tif_%04d_%04d\n' % (slide_basename, level0_x, level0_y))
                 tumor_count += 1
             else:
-                normal_file.write('%s.tif_%04d_%04d' % (slide_basename, level0_x, level0_y))
+                normal_file.write('%s.tif_%04d_%04d\n' % (slide_basename, level0_x, level0_y))
                 normal_count += 1
         else:
-            normal_file.write('%s.tif_%04d_%04d' % (slide_basename, level0_x, level0_y))
+            normal_file.write('%s.tif_%04d_%04d\n' % (slide_basename, level0_x, level0_y))
             normal_count +=1
     return tumor_count,normal_count
 
