@@ -50,9 +50,18 @@ class Train(basic_train.BasicTrain):
         _size = self.config.get_config('base', 'crop_size')
         train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
         if self.config.get_config('train','method') == 'base':
-            train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),tif_folder=self.config.get_config('base', 'train_tif_folder'))
+            train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),
+                                                      transform=train_transform,
+                                                      tif_folder=self.config.get_config('base', 'train_tif_folder')
+                                                      patch_size=self.config.get_config('base', 'patch_size'))
         elif self.config.get_config('train','method') == 'on_the_fly':
-            dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),self.config.get_config('train', 'normal_list'), data_size=self.config.get_config('train','data_size'),replacement=self.config.get_config('train','replacement'),tif_folder=self.config.get_config('base', 'train_tif_folder'))
+            dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
+                                                     self.config.get_config('train', 'normal_list'),
+                                                     transform=train_transform,
+                                                     data_size=self.config.get_config('train','data_size'),
+                                                     replacement=self.config.get_config('train','replacement'),
+                                                     tif_folder=self.config.get_config('base', 'train_tif_folder'),
+                                                     patch_size=self.config.get_config('base', 'patch_size'))
             train_dataset =dataset.sample()
         return train_dataset
 
