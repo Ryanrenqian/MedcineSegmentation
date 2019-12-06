@@ -34,7 +34,7 @@ class Train(basic_train.BasicTrain):
                                    self.config.get_config('base', 'last_run_date'))
         self.log = logs.Log(os.path.join(save_folder, "log.txt"))
         self.train_loader = self.load_data()
-        self.valid_loader = self.load_validation()
+        # self.valid_loader = self.load_validation()
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
     def cfg(self, name):
