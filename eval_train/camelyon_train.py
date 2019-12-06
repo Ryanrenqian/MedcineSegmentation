@@ -91,9 +91,11 @@ class Train(basic_train.BasicTrain):
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
-        train_epoch_start = 0 if config.get_config("train", 'start_epoch') == None else config.get_config("train",
-                                                                                                      'start_epoch')
-        train_epoch_stop = config.get_config("train", 'total_epoch')
+        train_epoch_start = 0
+        train_epoch_stop = config.get_config("train" ,'total_epoch')
+        if config.get_config("train","resume","run_this_module"):
+            train_epoch_start =  config.get_config("train","resume","start_epoch")
+            train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
         
         losses = counter.Counter()
         time_counter = counter.Counter()
