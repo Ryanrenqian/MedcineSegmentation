@@ -74,8 +74,8 @@ class Train(basic_train.BasicTrain):
         _params = self.cfg('params')
         self.optimizer = torch.optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
-        self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
-                                                            gamma=_params['lr_decay_factor'], last_epoch=10)
+        # self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
+        #                                                     gamma=_params['lr_decay_factor'], last_epoch=10)
 
     def train(self, _model,  hard_mining_times, save_helper,config,writer,validation):
         """单个epoch的train 参数在epoch中是原子操作
