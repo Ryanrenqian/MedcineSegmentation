@@ -59,7 +59,6 @@ class ListDataset(data.Dataset):
 
 class DynamicDataset():
     def __init__(self,normal_list,tumor_list,data_size,replacement=False, tif_folder='/root/workspace/dataset/CAMELYON16/training/*'):
-        normal=
         self.tumor = ListDataset(tumor_list,tif_folder)
         self.normal = ListDataset(normal_list,tif_folder)
         self.data_size =data_size
