@@ -53,7 +53,7 @@ class Train(basic_train.BasicTrain):
             return torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
                                                shuffle=True, num_workers=self.cfg('num_workers'))
         elif self.config.get_config('train','method','type') == 'on_the_fly':
-            dynamic_dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
+            dynamicdata = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
                                                      self.config.get_config('train', 'normal_list'),
                                                      transform=train_transform,
                                                      data_size=self.config.get_config('train','data_size'),
@@ -61,8 +61,8 @@ class Train(basic_train.BasicTrain):
                                                      tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                      patch_size=self.config.get_config('base', 'patch_size'))
             self.log.info("update dataset")
-            sampler = RandomSampler(dynamic_dataset,self.config.get_config('train','method','datasize'))
-            return torch.utils.data.DataLoader(dynamic_dataset, batch_size=self.cfg('batch_size'),
+            sampler = RandomSampler(dynamicdata,self.config.get_config('train','method','datasize'))
+            return torch.utils.data.DataLoader(dynamicdata, batch_size=self.cfg('batch_size'),
                                                sampler=sampler, num_workers=self.cfg('num_workers'))
 
 
