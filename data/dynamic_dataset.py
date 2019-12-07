@@ -47,7 +47,7 @@ class ListDataset(data.Dataset):
         _x, _y = patch_name.split('.tif_')[1].split('_')
         _x, _y = int(_x), int(_y)
         input_img = None
-        print(_x,_y,slide_name)
+        # print(_x,_y,slide_name)
         try:
             img = slide.read_region((_x, _y), 0, [self.patch_size, self.patch_size]).convert(
                 'RGB')
@@ -65,6 +65,7 @@ class ListDataset(data.Dataset):
 
 class DynamicDataset():
     def __init__(self,normal_list,tumor_list,data_size,transform,patch_size,replacement=False, tif_folder='/root/workspace/dataset/CAMELYON16/training/*'):
+        print('initial dataset')
         self.tumor = ListDataset(list_file=tumor_list,
                                  tif_folder=tif_folder,
                                  transform=transform,
