@@ -96,7 +96,6 @@ class Train(basic_train.BasicTrain):
         if config.get_config("train","resume","run_this_module"):
             train_epoch_start =  config.get_config("train","resume","start_epoch")
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
-        
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')

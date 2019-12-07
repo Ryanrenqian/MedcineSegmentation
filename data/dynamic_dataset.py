@@ -11,7 +11,6 @@ import os
 import pdb
 import time
 import numpy as np
-
 class ListDataset(data.Dataset):
     def __init__(self, list_file,transform=None,all_class=None, tif_folder='/root/workspace/dataset/CAMELYON16/training/*',
                  patch_size=256):
@@ -48,6 +47,7 @@ class ListDataset(data.Dataset):
         _x, _y = patch_name.split('.tif_')[1].split('_')
         _x, _y = int(_x), int(_y)
         input_img = None
+        print(_x,_y,slide_name)
         try:
             img = slide.read_region((_x, _y), 0, [self.patch_size, self.patch_size]).convert(
                 'RGB')
@@ -79,7 +79,6 @@ class DynamicDataset():
         self.replacement=replacement
 
     def sample(self):
-
         tumor = random.sample(list(self.tumor),self.data_size//2)
         normal =random.sample(list(self.normal),self.data_size//2)
         return data.ConcatDataset([self.tumor,self.normal])
