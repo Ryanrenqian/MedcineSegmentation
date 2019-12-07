@@ -1,6 +1,7 @@
 from  PIL import Image
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+import random
 import torch.utils.data as data
 import json
 import os
@@ -73,6 +74,6 @@ class DynamicDataset():
         self.replacement=replacement
 
     def sample(self):
-        tumor = data.RandomSampler(self.tumor,self.replacement,self.data_size//2)
-        normal =data.RandomSampler(self.tumor,self.replacement,self.data_size//2)
+        tumor = random.sample(self.tumor,self.data_size//2)
+        normal =random.sample(self.tumor,self.data_size//2)
         return data.ConcatDataset([self.tumor[tumor],self.normal[normal]])
