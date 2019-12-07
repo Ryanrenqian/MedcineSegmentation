@@ -1,7 +1,7 @@
 import torch
 from torch._six import int_classes as _int_classes
 import random
-from torch..utils.data import  Sampler
+from torch.utils.data import Sampler
 
 class RandomSampler(Sampler):
     r"""Samples elements randomly. If without replacement, then sample from a shuffled dataset.
