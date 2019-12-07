@@ -1,7 +1,7 @@
 import torch
 from torch._six import int_classes as _int_classes
 import random
-from torch.utils.data import Sampler
+from torch.utils.data import  Sampler
 
 class RandomSampler(Sampler):
     r"""Samples elements randomly. If without replacement, then sample from a shuffled dataset.
@@ -21,6 +21,12 @@ class RandomSampler(Sampler):
             raise ValueError("num_samples should be a positive integer "
                              "value, but got num_samples={}".format(self.num_samples))
 
+    @property
+    def num_samples(self):
+        # dataset size might change at runtime
+        if self._num_samples is None:
+            return len(self.data_source)
+        return self._num_samples
 
     def __iter__(self):
         n = len(self.data_source)
