@@ -78,6 +78,7 @@ class DynamicDataset():
         self.data_size =data_size
         self.replacement=replacement
 
+    @property
     def data(self):
         '''
 
@@ -85,8 +86,12 @@ class DynamicDataset():
         '''
         return data.ConcatDataset([self.tumor,self.normal])
 
+    def  __getitem__(self, index):
+        return self.data[index]
+
     def __len__(self):
         return len(self.tumor)+len(self.normal)
+
     @property
     def shape(self):
         '''
