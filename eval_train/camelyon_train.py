@@ -63,6 +63,7 @@ class Train(basic_train.BasicTrain):
                                                      tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                      patch_size=self.config.get_config('base', 'patch_size'))
             train_dataset =dataset.sample()
+        self.log.info("update dataset")
         return train_dataset
 
     def load_data(self):
@@ -94,12 +95,12 @@ class Train(basic_train.BasicTrain):
         train_epoch_start = 0
         train_epoch_stop = config.get_config("train" ,'total_epoch')
         if config.get_config("train","resume","run_this_module"):
-            train_epoch_start =  config.get_config("train","resume","start_epoch")
+            train_epoch_start = config.get_config("train","resume","start_epoch")
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')
-        iteration=0
+        iteration = 0
         for epoch in range(train_epoch_start, train_epoch_stop):
             for i, data in enumerate(self.load_data(), 0):
                 iteration +=1
