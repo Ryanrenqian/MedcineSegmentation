@@ -32,7 +32,6 @@ class RandomSampler(Sampler):
 
     def __init__(self, data_source,  num_samples=None):
         self.data_source = data_source
-        self.replacement = replacement
         self._num_samples = num_samples
         if not isinstance(self.num_samples, int) or self.num_samples <= 0:
             raise ValueError("num_samples should be a positive integer "
