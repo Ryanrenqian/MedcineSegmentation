@@ -82,4 +82,4 @@ class DynamicDataset():
 
         tumor = random.sample(list(self.tumor),self.data_size//2)
         normal =random.sample(list(self.normal),self.data_size//2)
-        return data.ConcatDataset([self.tumor[tumor],self.normal[normal]])
+        return data.ConcatDataset([self.tumor,self.normal])
