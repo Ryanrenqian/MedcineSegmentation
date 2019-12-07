@@ -85,6 +85,8 @@ class DynamicDataset():
         '''
         return data.ConcatDataset([self.tumor,self.normal])
 
+    def __len__(self):
+        return len(self.tumor)+len(self.normal)
     @property
     def shape(self):
         '''

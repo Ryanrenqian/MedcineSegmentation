@@ -60,7 +60,7 @@ class Train(basic_train.BasicTrain):
                                                      replacement=self.config.get_config('train','replacement'),
                                                      tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                      patch_size=self.config.get_config('base', 'patch_size'))
-            self.log.info("update dataset")
+            # self.log.info("update dataset")
             sampler = RandomSampler(dynamicdata,self.config.get_config('train','method','datasize'))
             return torch.utils.data.DataLoader(dynamicdata, batch_size=self.cfg('batch_size'),
                                                sampler=sampler, num_workers=self.cfg('num_workers'))
