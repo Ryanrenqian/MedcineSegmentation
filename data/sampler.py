@@ -32,11 +32,11 @@ class RandomSampler(Sampler):
         n = len(self.data_source)
         tumor_size,normal_size=self.data_source.shape
         sample = self.num_samples//2  # 各抽取一半样本
-        tumor_list=torch.randint(high=n, size=(sample,), dtype=torch.int64).tolist()
+        tumor_list=torch.randint(high=tumor_size, size=(sample,), dtype=torch.int64).tolist()
         normal_list=torch.randint(low=tumor_size,high=n, size=(sample,), dtype=torch.int64).tolist()
         samples=tumor_list+normal_list
-        samples_shuffle = random.shuffle(samples) # 重新排列
-        return iter(samples_shuffle)
+        random.shuffle(samples) # 重新排列
+        return iter(samples)
 
     def __len__(self):
         return self.num_samples
