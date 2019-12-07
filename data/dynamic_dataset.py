@@ -26,8 +26,7 @@ class ListDataset(data.Dataset):
         tif_list.sort()
         with open(list_file,'r')as f:
             self.patch_name_list=f.readlines()
-        if all_class:
-            self.all_class=all_class
+        self.all_class=all_class
         self.patch_size = patch_size
         self.transform = transform
         # 添加所有的slide缓存，从缓存中取数据
