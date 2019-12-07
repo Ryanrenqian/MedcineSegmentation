@@ -78,7 +78,18 @@ class DynamicDataset():
         self.data_size =data_size
         self.replacement=replacement
 
-    def sample(self):
-        tumor = random.sample(list(self.tumor),self.data_size//2)
-        normal =random.sample(list(self.normal),self.data_size//2)
+    def data(self):
+        '''
+
+        :return: Tumor + Normal dataset
+        '''
         return data.ConcatDataset([self.tumor,self.normal])
+
+    @property
+    def shape(self):
+        '''
+
+        :return: tumor size, normal size
+        '''
+        return (len(self.tumor),len(self.normal))
+

@@ -20,7 +20,7 @@ import pdb
 import os
 import json
 import torch.nn.functional as F
-
+from basic.data.sampler import RandomSampler
 
 class Train(basic_train.BasicTrain):
     """包含每一轮train，返回每次batch_size的output
@@ -41,35 +41,30 @@ class Train(basic_train.BasicTrain):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
-    def reload_data(self):
-        """重新导入数据"""
-        #         pdb.set_trace()
-        self.train_loader = self.load_data()
 
-    def get_train_data(self):
+    def load_data(self):
         _size = self.config.get_config('base', 'crop_size')
         train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
-        if self.config.get_config('train','method') == 'base':
+        if self.config.get_config('train','method','type') == 'base':
             train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),
                                                       transform=train_transform,
                                                       tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                       patch_size=self.config.get_config('base', 'patch_size'))
-        elif self.config.get_config('train','method') == 'on_the_fly':
-            dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
+            return torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
+                                               shuffle=True, num_workers=self.cfg('num_workers'))
+        elif self.config.get_config('train','method','type') == 'on_the_fly':
+            dynamic_dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
                                                      self.config.get_config('train', 'normal_list'),
                                                      transform=train_transform,
                                                      data_size=self.config.get_config('train','data_size'),
                                                      replacement=self.config.get_config('train','replacement'),
                                                      tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                      patch_size=self.config.get_config('base', 'patch_size'))
-            train_dataset =dataset.sample()
-        self.log.info("update dataset")
-        return train_dataset
+            self.log.info("update dataset")
+            sampler = RandomSampler(dynamic_dataset,self.config.get_config('train','method','datasize'))
+            return torch.utils.data.DataLoader(dynamic_dataset, batch_size=self.cfg('batch_size'),
+                                               sampler=sampler, num_workers=self.cfg('num_workers'))
 
-    def load_data(self):
-        train_dataset =  self.get_train_data()
-        return torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
-                                    shuffle=True, num_workers=self.cfg('num_workers'))
 
     def init_optimizer(self, _model):
         _params = self.cfg('params')
@@ -103,7 +98,7 @@ class Train(basic_train.BasicTrain):
         iteration = 0
         for epoch in range(train_epoch_start, train_epoch_stop):
             for i, data in enumerate(self.load_data(), 0):
-                iteration +=1
+                iteration += 1
                 train_input, train_labels, path_list = data
                 if torch.cuda.is_available():
                     train_input = Variable(train_input.type(torch.cuda.FloatTensor))
