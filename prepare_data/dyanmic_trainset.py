@@ -17,7 +17,7 @@ def get_args():
                         type=str, help='生成的patch list路径')
     parser.add_argument('-ds', '--downsample',
                         default=64,
-                        type=int, help='生成的patch list路径')
+                        type=int, help='下采样倍数')
     args = parser.parse_args()
     return args
 
