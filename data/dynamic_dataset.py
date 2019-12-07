@@ -42,7 +42,7 @@ class ListDataset(data.Dataset):
             patch_name,class_id = self.patch_name_list[index].rstrip().split()
         else:
             patch_name = self.patch_name_list[index].rstrip()
-        class_id = self.patch_dict[patch_name]
+            class_id = self.all_class
         slide_name = patch_name.split('.tif_')[0] + '.tif'
         slide = openslide.OpenSlide(self.slide_dict[slide_name])  # 直接在这里使用对速度没有明显影响，但slide的缓存会较少很多
         _x, _y = patch_name.split('.tif_')[1].split('_')
