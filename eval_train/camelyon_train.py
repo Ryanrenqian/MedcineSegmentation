@@ -138,7 +138,7 @@ class Train(basic_train.BasicTrain):
                         losses.avg,
                         time_counter.interval()), '\r')
 #                     self.log.info(f'train new epoch:{epoch}/{self.config.get_config('train', 'total_epoch')},batch iter:{i}/{len(self.train_loader)}, lr:{self.optimizer.state_dict()['param_groups'][0]['lr']:.10f}, train_acc-iter/avg:[{acc_batch:.2f}/{acc['avg_counter'].avg:.2f}]-[%{acc['avg_counter_total'].avg:.2f}--{acc['avg_counter_pos'].avg:.2f}--{acc['avg_counter_neg'].avg:.2f}], loss:{loss.item():.2f}/{losses.avg:.2f},time consume:{time_counter.interval():.2f} s \r')
-            self.optimizer_schedule.step()
+#             self.optimizer_schedule.step()
             # 增加validation部分
             if validation:
                 best_epoch=self.valid(_model,writer,epoch)
