@@ -44,8 +44,7 @@ class Train(basic_train.BasicTrain):
     def checkpoint(self,hard_mining_times,  model):
         save_folder = self.config.get_config('base','save_folder')
         epoch = self.config.get_config('train', 'start_epoch')
-        checkpoint = os.path.join(save_folder,
-                                       'hardmine_%d_epoch_%d_type_train_model.pth' % (hard_mining_times, checkpoint))
+        checkpoint = os.path.join(save_folder,'hardmine_%d_epoch_%d_type_train_model.pth' % (hard_mining_times, epoch))
         epoch_checkpoint = torch.load(checkpoint)
         model.load_state_dict(epoch_checkpoint.model_state)
         return model
@@ -98,7 +97,7 @@ class Train(basic_train.BasicTrain):
         train_epoch_start = 0
         train_epoch_stop = config.get_config("train" ,'total_epoch')
         if config.get_config("train","resume","run_this_module"):
-            train_epoch_start = config.get_config("train","resume","start_epoch")
+            train_epoch_start = config.get_config("train","resume","start_epoch")+1
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
             self.log.info('resume checkpoint')
             _model = self.checkpoint(hard_mining_times, _model)
