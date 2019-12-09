@@ -118,16 +118,17 @@ class PostScan():
         dense_i = h//self.sd
         dense_j = w//self.sd
         dense = torch.zeros((dense_i, dense_j)).cpu()  # 初始化dense
-        k_i = dense_i//max_k # 分成多块 行
-        k_j = dense_j//max_k # 分成多块 列
-        step = 260 + max_k * 32 # 每个WSI上区域的大小
         size = 2*(max_k+1)
+        k_i = dense_i//size # 分成多块 行
+        k_j = dense_j//size # 分成多块 列
+        step = 260 + max_k * 32 # 每个WSI上区域的大小
+
         for i in range(k_i):
             for j  in range(k_j):
                 x,y=j*size*16-122,  i*size*16-122 # WSI 上的起始坐标从-122开始
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
-                dense[i*size:(i+1)*size,i*size:(j+1)*size]=self.get_dpt(block,step,step)
+                dense[i*size:(i+1)*size,j*size:(j+1)*size]=self.get_dpt(block,step,step)
         if self.save:
             npfpm = final_probability_map.numpy()
             filepath = os.path.join(self.save, '%s_fpm.npy' % basename)

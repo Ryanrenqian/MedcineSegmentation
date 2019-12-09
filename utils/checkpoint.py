@@ -131,7 +131,7 @@ class CheckPoint(object):
                         "best_epoch": self.best_epoch,
                         "model_state": model.state_dict()},
                        save_best_acc_path)
-            self.log.info('    save best_acc.pth:%s' % save_best_acc_path)
+            self.log.info('save best_acc.pth:%s' % save_best_acc_path)
         # 保留每次epoch的failure example
 
     def finish(self, epoch, epoch_start, epoch_stop):

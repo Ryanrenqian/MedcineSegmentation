@@ -41,6 +41,14 @@ class Train(basic_train.BasicTrain):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
+    def checkpoint(self,hard_mining_times,  model):
+        save_folder = self.config.get_config('base','save_folder')
+        epoch = self.config.get_config('train', 'start_epoch')
+        checkpoint = os.path.join(save_folder,
+                                       'hardmine_%d_epoch_%d_type_train_model.pth' % (hard_mining_times, checkpoint))
+        epoch_checkpoint = torch.load(checkpoint)
+        model.load_state_dict(epoch_checkpoint.model_state)
+        return model
 
     def load_data(self):
         _size = self.config.get_config('base', 'crop_size')
@@ -79,7 +87,7 @@ class Train(basic_train.BasicTrain):
         :
         :return 本次epoch中的所有样本的详细结果，平均acc，loss
         """
-        _model.train()
+
 
         criterion = nn.CrossEntropyLoss()
 
@@ -92,6 +100,9 @@ class Train(basic_train.BasicTrain):
         if config.get_config("train","resume","run_this_module"):
             train_epoch_start = config.get_config("train","resume","start_epoch")
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
+            self.log.info('resume checkpoint')
+            _model = self.checkpoint(hard_mining_times, _model)
+        _model.train()
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')
