@@ -46,7 +46,7 @@ class Train(basic_train.BasicTrain):
         epoch = self.config.get_config('train', 'resume' ,'start_epoch')
         checkpoint = os.path.join(save_folder,f'hardmine_{hard_mining_times}_epoch_{epoch}_type_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
-        model.load_state_dict(epoch_checkpoint.model_state)
+        model.load_state_dict(epoch_checkpoint['model_state'])
         return model
 
     def load_data(self):
