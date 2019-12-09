@@ -147,6 +147,7 @@ print('total slide : %d' % len(slide_list))
 
 pth = '/root/workspace/renqian/0929/save/camelyon16/scannet_train_MSE_NCRF_40w_patch_256/2019-10-21_08-33-34/hardmine_0_epoch_9_type_train_model.pth'
 model = Scannet().cuda()
+model.eval()
 model = torch.nn.DataParallel(model,device_ids=[ 0,1,2,3])
 model.load_state_dict(torch.load(pth)['model_state'])
 save_npy='/root/workspace/renqian/0929/scannet/11_20/'
