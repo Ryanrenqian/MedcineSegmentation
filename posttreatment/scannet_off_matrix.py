@@ -124,7 +124,7 @@ class PostScan():
         size = 2*(max_k+1)
         for i in range(k_i):
             for j  in range(k_j):
-                x,y=j*16-122,  i*16-122 # WSI 上的起始坐标从-122开始
+                x,y=j*size*16-122,  i*size*16-122 # WSI 上的起始坐标从-122开始
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
                 dense[i*size:(i+1)*size,i*size:(j+1)*size]=self.get_dpt(block,step,step)
@@ -164,10 +164,3 @@ for slide_path in slide_list:
     if filename == 'test_002':
         final_probability_map=post.finalprobmap(slide_path,max_k=10)
     print(filename in saved)
-    if filename in saved:
-        continue
-    print(slide_path)
-    sttime=time.time()
-    final_probability_map=post.densereconstruction(slide_path,max_k=50)
-    end=time.time()
-    print('total time %f'%(end-sttime))
