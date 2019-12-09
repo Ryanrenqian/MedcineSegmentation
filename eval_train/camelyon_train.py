@@ -41,8 +41,8 @@ class Train(basic_train.BasicTrain):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
-    def checkpoint(self,hard_mining_times,  model):
-        save_folder = self.config.get_config('base','save_folder')
+    def checkpoint(self,hard_mining_times,  model,save_helper):
+        save_folder = save_helper.save_folder
         epoch = self.config.get_config('train', 'resume' ,'start_epoch')
         checkpoint = os.path.join(save_folder,f'hardmine_{hard_mining_times}_epoch_{epoch}_type_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
