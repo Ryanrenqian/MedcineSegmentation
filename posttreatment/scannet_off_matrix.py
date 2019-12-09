@@ -47,12 +47,8 @@ class PostScan():
         '''
         
         roi_batch=torch.cat(roi_list,0)
-
         opt = self.model(roi_batch)
         opt =F.softmax(opt)[:,1].cpu().detach()
-#         opt_list.append(opt)
-#         opt_list=torch.cat(opt_list,0)
-#         print('opt_list size',opt_list.shape)
         count=0
         for i in range(self.alpha):
             for j in range(self.alpha):
@@ -109,102 +105,32 @@ class PostScan():
 #         print('dpts:',time.time()-time1)
         return dpt
 
-    def finalprobmap(self,slide_path, roi_path=None, max_k=82,save=None,num_worker=None):
+    def densereconstruction(self,slide_path,roi_path=None,max_k=82):
         '''
-        max_k = 82按照paper给的结果换算而成，Lp=83，n=83-1=82,用于调控block的大小
-        将wsi slide分成多块，然后分开对每个小块求DPT，这里需要提供一个方法解决分块问题，将求得的DPTs缝合起来就得到这张图的最后概率密度图
-        Hp代表的是stitched probability map， 或许等于block大小，这里需要测试一下
-        设ROI的size为 Lr = 244 + 32k,则 Block的size= ROI+16=260+32k
-        如何处理小块？想到的解决方案有：方法1：需要填充，方法2：小块单独计算，此处选择小块单独计算。
-        如何提高计算速度：计算量较大
-        :param wsi: 输入整张wsi
-        :return:final_probability_map 返回最后的概率值
+        :param slide_path:
+        :param roi_path:
+        :param max_k:
+        :return: dense #最终概率密度
         '''
-        st = time.time()
         slide = openslide.open_slide(slide_path)
         basename = os.path.basename(slide_path).rstrip('.tif')
-        w, h = slide.dimensions # slide的宽和高
-        ki, kj = h//(260+max_k*32),w//(260+max_k*32)  # WSI = sum(BLOCk[i,j],i<=ki,j<=kj)
-        print(f'dimension x,y: {w},{h}, block[i,j]:{ki},{kj}')
-        fpm_i = ki*(max_k+1)*2 # fpm有i行
-        fpm_j = kj*(max_k+1)*2 # fpm有j列
-        print(f'fpm_rows:{fpm_i},fpm_columns:{fpm_j}')
-        final_probability_map = torch.zeros((fpm_i,fpm_j)).cpu()  # 初始化final_probability_map
-        # 添加位置标记
-        fpm_column=0 # 标记fpm上columns起始位置
-        fpm_row=0 # 标记fpm上rows起始位置
-        size= 2*(max_k+1) # dpt的尺寸
-        x,y= 0,0 #标记图像slide的起始坐标
-        step = 260+max_k*32  # Block的大小,即为在WSI遍历时x,y的步长
-        x,y = 0,8700
-#         fpm_row,fpm_column = 8700,0
-#         block = slide.read_region((x,y),0,(step,step))
-#         dpt = self.get_dpt(block,step,step)
-#         print("fpm loc: (%d,%d,%d,%d)"%(fpm_row,fpm_row+size,fpm_column,fpm_column+size))
-#         final_probability_map[fpm_row:fpm_row+size, fpm_column:fpm_column+size]= dpt
-        # 算法效率估计
-#         将图像按照max_k的值进行切割，会对剩下的小块进行计算
-        for i in range(ki):   # 第i行block,wsi的y
-            for j in range(kj): #第j列block,wsi的x
-                print(f'block[{i},{j}] size: ({step},{step}),WSI loc:({x},{y})')                   
-                block = slide.read_region((x,y),0,(step,step))
-                # 拼接pts到fpm中  
-                print("fpm _block: (%d,%d,%d,%d)"%(fpm_row,fpm_row+size,fpm_column,fpm_column+size))
-                dpt = self.get_dpt(block,step,step)
-#                 print(f'fpm size of block[{i},{j}] == dpt size of block: {dpt.shape==(size,size)}')
-                final_probability_map[fpm_row:fpm_row+size, fpm_column:fpm_column+size] = dpt
-                fpm_column += size # fpm 列平移
-                x += step # wsi x平移
-                if fpm_column>fpm_j:
-                    print(f'{fpm_column}>{fpm_j}')
-            fpm_row += size # 移动一个row
-            fpm_column =0 #x回到0点
-            x = 0 #回到从0开始  
-            y += step # y位移
+        w, h = slide.dimensions  # slide的宽和高
+        dense_i = h//self.sd
+        dense_j = w//self.sd
+        dense = torch.zeros((dense_i, dense_j)).cpu()  # 初始化dense
+        k_i = dense_i//max_k # 分成多块 行
+        k_j = dense_j//max_k # 分成多块 列
+        step = 260 + max_k * 32 # 每个WSI上区域的大小
+        size = 2*(max_k+1)
+        for i in range(k_i):
+            for j  in range(k_j):
+                x,y=j*16-122,  i*16-122 # WSI 上的起始坐标从-122开始
+                block = slide.read_region((x, y), 0, (step, step))
+                dpt = self.get_dpt(block, step, step)
+                dense[i*size:(i+1)*size,i*size:(j+1)*size]=self.get_dpt(block,step,step)
+        return dense
 
-        if self.save:
-            npfpm=final_probability_map.numpy()
-            filepath=os.path.join(self.save,'%s_fpm.npy'%basename)
-            print('savepath:%s'%filepath)
-            np.save(filepath,npfpm)
-        return final_probability_map
-    
-    
-    def wsi_otsu(self,image):
-        """
-        input: image(PIL.Image)
-        output:
-            region_origin - (np.array,m*n*3), 原图数据，用于对比
-            region_forward - (np.array,m*n*3), 分割的前景
-            region_backward - (np.array,m*n*3), 分割后的背景
-            tissue_mask - mask, m*n
-            count_true, count_false - otsu阈值保留的有效面积比例
-        阈值的来源：是level5全图预先计算的otsu优化值
-        默认会占满所有cpu用于加速，同时运行的其他程序会受影响
-        """
-        region_origin = np.array(image)
 
-        # 颜色空间变换
-        img_RGB = np.transpose(region_origin[:, :, 0:3], axes=[1, 0, 2])
-        img_HSV = rgb2hsv(img_RGB)
-        # otsu阈值处理前背景提取
-        background_R = img_RGB[:, :, 0] > 203
-        background_G = img_RGB[:, :, 1] > 191
-        background_B = img_RGB[:, :, 2] > 201
-        tissue_RGB = np.logical_not(background_R & background_G & background_B)
-        tissue_S = img_HSV[:, :, 1] > 0.1113
-        '''如果仅使用用threadshold，中间会有部份白色脂肪区域被隔离'''
-        rgb_min = 50
-        min_R = img_RGB[:, :, 0] > rgb_min
-        min_G = img_RGB[:, :, 1] > rgb_min
-        min_B = img_RGB[:, :, 2] > rgb_min
-        tissue_mask = tissue_S & tissue_RGB & min_R & min_G & min_B
-
-        count_true = np.sum(tissue_mask == True) # 背景
-        count_false = np.sum(tissue_mask == False) # 前景
-        return count_true, count_false
-
-    
 test_slide_folder = '/root/workspace/dataset/CAMELYON16/testing/images/'
 test_slide_annotation_folder = '/root/workspace/dataset/CAMELYON16/testing/lesion_annotations/'
 
