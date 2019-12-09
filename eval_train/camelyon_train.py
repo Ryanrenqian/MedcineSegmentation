@@ -20,7 +20,7 @@ import pdb
 import os
 import json
 import torch.nn.functional as F
-
+from basic.data.sampler import RandomSampler
 
 class Train(basic_train.BasicTrain):
     """包含每一轮train，返回每次batch_size的output
@@ -34,39 +34,44 @@ class Train(basic_train.BasicTrain):
                                    self.config.get_config('base', 'last_run_date'))
         self.log = logs.Log(os.path.join(save_folder, "log.txt"))
         self.train_loader = self.load_data()
-        self.valid_loader = self.load_validation()
+        # self.valid_loader = self.load_validation()
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
     def cfg(self, name):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
-    def reload_data(self):
-        """重新导入数据"""
-        #         pdb.set_trace()
-        self.train_loader = self.load_data()
-
-    def get_train_data(self):
-        _size = self.config.get_config('base', 'crop_size')
-        train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
-        if self.config.get_config('train','method') == 'base':
-            train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),tif_folder=self.config.get_config('base', 'train_tif_folder'))
-        if self.config.get_config('train','method') == 'on_the_fly':
-            dataset = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),self.config.get_config('train', 'normal_list'), data_size=self.config.get_config('train','data_size'),replacement=self.config.get_config('train','replacement'),tif_folder=self.config.get_config('base', 'train_tif_folder'))
-            train_dataset =dataset.sample()
-        return train_dataset
 
     def load_data(self):
-        train_dataset =  self.get_train_data()
-        torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
-                                    shuffle=True, num_workers=self.cfg('num_workers'))
+        _size = self.config.get_config('base', 'crop_size')
+        train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
+        if self.config.get_config('train','method','type') == 'base':
+            train_dataset = camelyon_data.EvalDataset(self.config.get_config('train', 'train_list'),
+                                                      transform=train_transform,
+                                                      tif_folder=self.config.get_config('base', 'train_tif_folder'),
+                                                      patch_size=self.config.get_config('base', 'patch_size'))
+            return torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
+                                               shuffle=True, num_workers=self.cfg('num_workers'))
+        elif self.config.get_config('train','method','type') == 'on_the_fly':
+            dynamicdata = dynamic_dataset.DynamicDataset(self.config.get_config('train', 'tumor_list'),
+                                                     self.config.get_config('train', 'normal_list'),
+                                                     transform=train_transform,
+                                                     data_size=self.config.get_config('train','data_size'),
+                                                     replacement=self.config.get_config('train','replacement'),
+                                                     tif_folder=self.config.get_config('base', 'train_tif_folder'),
+                                                     patch_size=self.config.get_config('base', 'patch_size'))
+            # self.log.info("update dataset")
+            sampler = RandomSampler(dynamicdata,self.config.get_config('train','method','datasize'))
+            return torch.utils.data.DataLoader(dynamicdata, batch_size=self.cfg('batch_size'),
+                                               sampler=sampler, num_workers=self.cfg('num_workers'))
+
 
     def init_optimizer(self, _model):
         _params = self.cfg('params')
         self.optimizer = torch.optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
-        self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
-                                                            gamma=_params['lr_decay_factor'], last_epoch=10)
+        # self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
+        #                                                     gamma=_params['lr_decay_factor'], last_epoch=10)
 
     def train(self, _model,  hard_mining_times, save_helper,config,writer,validation):
         """单个epoch的train 参数在epoch中是原子操作
@@ -82,17 +87,18 @@ class Train(basic_train.BasicTrain):
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
-        train_epoch_start = 0 if config.get_config("train", 'start_epoch') == None else config.get_config("train",
-                                                                                                      'start_epoch')
-        train_epoch_stop = config.get_config("train", 'total_epoch')
-        
+        train_epoch_start = 0
+        train_epoch_stop = config.get_config("train" ,'total_epoch')
+        if config.get_config("train","resume","run_this_module"):
+            train_epoch_start = config.get_config("train","resume","start_epoch")
+            train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')
-        iteration=0
+        iteration = 0
         for epoch in range(train_epoch_start, train_epoch_stop):
             for i, data in enumerate(self.load_data(), 0):
-                iteration +=1
+                iteration += 1
                 train_input, train_labels, path_list = data
                 if torch.cuda.is_available():
                     train_input = Variable(train_input.type(torch.cuda.FloatTensor))
@@ -132,7 +138,7 @@ class Train(basic_train.BasicTrain):
                         losses.avg,
                         time_counter.interval()), '\r')
 #                     self.log.info(f'train new epoch:{epoch}/{self.config.get_config('train', 'total_epoch')},batch iter:{i}/{len(self.train_loader)}, lr:{self.optimizer.state_dict()['param_groups'][0]['lr']:.10f}, train_acc-iter/avg:[{acc_batch:.2f}/{acc['avg_counter'].avg:.2f}]-[%{acc['avg_counter_total'].avg:.2f}--{acc['avg_counter_pos'].avg:.2f}--{acc['avg_counter_neg'].avg:.2f}], loss:{loss.item():.2f}/{losses.avg:.2f},time consume:{time_counter.interval():.2f} s \r')
-            self.optimizer_schedule.step()
+#             self.optimizer_schedule.step()
             # 增加validation部分
             if validation:
                 best_epoch=self.valid(_model,writer,epoch)
@@ -146,4 +152,3 @@ class Train(basic_train.BasicTrain):
                                                                                             key_st='training epoch start'))))
 #         return acc, losses
 
-        
