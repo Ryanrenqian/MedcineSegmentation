@@ -3,7 +3,7 @@ import torch
 import math
 from  torch.nn import functional as F
 import openslide
-from  scannet import Scannet
+from  basic.model.scannet import Scannet
 import PIL
 import numpy as np
 from  torchvision import transforms
