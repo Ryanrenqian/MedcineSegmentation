@@ -22,8 +22,10 @@ class CheckPoint(object):
         self.test_acc_list = []
         self.best_acc = 0
         self.best_epoch = 0
-        self.save_folder = os.path.join(self.config.get_config('base', 'save_folder'),
-                                        self.config.get_config('base', 'last_run_date'))
+        self.save_folder = self.config.get_config('base', 'save_folder')
+        iteration = 0
+        while (os.path.exists(self.save_folder)):
+            self.save_folder=self.save_folder+f'-{iteration}'
         file.check_mkdir(self.save_folder)
         self.log = logs.Log(os.path.join(self.save_folder, 'log.txt'))
 
