@@ -100,7 +100,7 @@ class Train(basic_train.BasicTrain):
             train_epoch_start = config.get_config("train","resume","start_epoch")+1
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
             self.log.info('resume checkpoint')
-            _model = self.checkpoint(hard_mining_times, _model)
+            _model = self.checkpoint(hard_mining_times, _model,save_helper)
         _model.train()
         losses = counter.Counter()
         time_counter = counter.Counter()
