@@ -163,5 +163,5 @@ print('saved:',saved)
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
     if filename == 'test_002':
-        final_probability_map=post.finalprobmap(slide_path,max_k=10)
+        final_probability_map=post.densereconstruction(slide_path,max_k=10)
     print(filename in saved)
