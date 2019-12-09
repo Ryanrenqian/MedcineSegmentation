@@ -128,6 +128,11 @@ class PostScan():
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
                 dense[i*size:(i+1)*size,i*size:(j+1)*size]=self.get_dpt(block,step,step)
+        if self.save:
+            npfpm = final_probability_map.numpy()
+            filepath = os.path.join(self.save, '%s_fpm.npy' % basename)
+            print('savepath:%s' % filepath)
+            np.save(filepath, npfpm)
         return dense
 
 
@@ -156,13 +161,13 @@ for parent, dirnames, filenames in os.walk(save_npy):
 print('saved:',saved)  
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
-#     if filename == 'test_002':
-#         final_probability_map=post.finalprobmap(slide_path,max_k=10)
+    if filename == 'test_002':
+        final_probability_map=post.finalprobmap(slide_path,max_k=10)
     print(filename in saved)
     if filename in saved:
         continue
     print(slide_path)
     sttime=time.time()
-    final_probability_map=post.finalprobmap(slide_path,max_k=50)
+    final_probability_map=post.densereconstruction(slide_path,max_k=50)
     end=time.time()
     print('total time %f'%(end-sttime))
