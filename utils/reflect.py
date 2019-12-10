@@ -3,15 +3,14 @@ Reflection of module
 """
 
 import sys
-
 sys.path.append('../')
-import base as basic
+import basic
 import pdb
-from ..model import *
-from ..eval_train import *
-from ..eval_test import *
-from ..eval_hard import *
-from ..eval_validate import *
+from basic.model import *
+from basic.eval_train import *
+from basic.eval_test import *
+from basic.eval_hard import *
+from basic.eval_validate import *
 def get_package(package_name):
     return getattr(basic, package_name)
 
