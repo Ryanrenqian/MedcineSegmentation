@@ -3,7 +3,7 @@ import torch
 import math
 from  torch.nn import functional as F
 import openslide
-from  basic.model.scannet import Scannet
+from  ..model.scannet import Scannet
 import PIL
 import numpy as np
 from  torchvision import transforms
@@ -163,6 +163,4 @@ for parent, dirnames, filenames in os.walk(save_npy):
 print('saved:',saved)  
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
-    if filename == 'test_002':
-        final_probability_map=post.densereconstruction(slide_path,max_k=10)
-    print(filename in saved)
+    final_probability_map=post.densereconstruction(slide_path,max_k=10)
