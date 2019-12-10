@@ -17,6 +17,8 @@ class RandomSampler(Sampler):
     def __init__(self, data_source,  num_samples=None):
         self.data_source = data_source
         self._num_samples = num_samples
+        self._sampled=set()
+        self._sample_ratio= len(self.sampled)/self._num_samples
         if not isinstance(self.num_samples, int) or self.num_samples <= 0:
             raise ValueError("num_samples should be a positive integer "
                              "value, but got num_samples={}".format(self.num_samples))
@@ -35,6 +37,7 @@ class RandomSampler(Sampler):
         tumor_list=torch.randint(high=tumor_size, size=(sample,), dtype=torch.int64).tolist()
         normal_list=torch.randint(low=tumor_size,high=n, size=(sample,), dtype=torch.int64).tolist()
         samples=tumor_list+normal_list
+        self._sampled= set.union(self._sampled,set(samples))
         random.shuffle(samples) # 重新排列
         return iter(samples)
 
