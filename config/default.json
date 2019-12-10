@@ -2,7 +2,7 @@
   "base": {
     "config_name": "用NCRF的40w数据来训练scannet对比模型",
     "cmd_line": "python eval_main/eval_camelyon_main.py -config /root/workspace/renqian/1115/basic/config/camelyon16/Scannet/scannet_train_exp5.json",
-    "save_folder": "/root/workspace/renqian/1115/result/exp5",
+    "save_folder": "/root/workspace/renqian/1115/result/test",
     "dataset": "camelyon16",
     "train_tif_folder": "/root/workspace/dataset/CAMELYON16/training/*",
     "test_tif_folder": "/root/workspace/dataset/CAMELYON16/testing/images",
@@ -53,7 +53,7 @@
       "optimizer": "SGD"
     },
     "resume": {
-      "run_this_module": true,
+      "run_this_module": false,
       "start_epoch": 144,
       "total_epoch": 50,
       "resume_checkpoint": ""

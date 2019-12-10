@@ -1,9 +1,11 @@
 import sys
 import argparse
-from  ..config import config_base
-from  ..utils import checkpoint
-from  ..utils import counter
-from ..utils import reflect
+sys.path.append('..')
+import basic
+from  basic.config import config_base
+from  basic.utils import checkpoint
+from  basic.utils import counter
+from basic.utils import reflect
 import time
 import glob
 import os
@@ -11,7 +13,7 @@ import time
 
 import pdb
 
-sys.path.append('./eval_train')
+
 parser = argparse.ArgumentParser(description='huangxs eval_main')
 parser.add_argument('-config', metavar='DIR', default='', help='config path')
 parser.add_argument('-resume', '--resume', default=None, type=int, help='resume path')
@@ -45,7 +47,7 @@ def eval_main():
     if config.get_config("train", 'run_this_module') == True:
         train.train(model, hard_mining_times, save_helper,config,validation)
     # tain with hard_minning
-    if config.get_config('test','run_this_module') ==True:
+    elif config.get_config('test','run_this_module') ==True:
         test.test(model, 0, hard_mining_times, save_helper)
 
 
@@ -66,5 +68,4 @@ def get_instance(_config, _model):
 
 
 if __name__ == '__main__':
-#     pdb.set_trace()
     eval_main()
