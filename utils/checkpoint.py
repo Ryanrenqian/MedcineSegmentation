@@ -4,9 +4,9 @@ import shutil
 import torch
 import pdb
 
-from  basic.utils import logs
-from  basic.utils import file
-from  basic.utils import timeutil
+from  ..utils import logs
+from  ..utils import file
+from  ..utils import timeutil
 import json
 
 best_acc = 0
@@ -22,8 +22,11 @@ class CheckPoint(object):
         self.test_acc_list = []
         self.best_acc = 0
         self.best_epoch = 0
-        self.save_folder = os.path.join(self.config.get_config('base', 'save_folder'),
-                                        self.config.get_config('base', 'last_run_date'))
+        self.save_folder = self.config.get_config('base', 'save_folder')
+        if not (config.get_config('train','resume','run_this_module') or config.get_config('test','run_this_module')):
+            iteration = 0
+            while (os.path.exists(self.save_folder)):
+                self.save_folder=self.save_folder+f'-{iteration}'
         file.check_mkdir(self.save_folder)
         self.log = logs.Log(os.path.join(self.save_folder, 'log.txt'))
 
@@ -65,7 +68,7 @@ class CheckPoint(object):
                     "epoch": epoch,
                     "model_state": model.state_dict()}, save_model_name)
 
-    def save(self, epoch, model, train_acc, losses, test_acc, time_counter=None):
+    def save(self, epoch, model, train_acc, losses, test_acc, iteration=None,time_counter=None):
         """
         保存中间模型结果和最佳模型,模型只保留两个。这是对整个epochs进行操作的
         - 当前的和最佳的
@@ -78,7 +81,6 @@ class CheckPoint(object):
         :return:
         """
         # 如果是best，更新best model 的check point
-
         is_best_acc = False
         if self.best_acc < test_acc['avg_counter'].avg:
             self.best_acc = test_acc['avg_counter'].avg
@@ -115,13 +117,14 @@ class CheckPoint(object):
                         "losses_list": self.losses_list,
                         "best_acc": self.best_acc,
                         "best_epoch": self.best_epoch,
-                        "model_state": model.state_dict()},
+                        "model_state": model.state_dict(),
+                        'iteration':iteration},
                        save_checkpoint_path)
             self.log.info('    save checkpoint.pth:%s' % save_checkpoint_path)
 
         # 如果本次epoch结果最佳
         if is_best_acc:
-            save_best_acc_path = os.path.join(self.save_folder, 'best_acc.pth')
+            save_best_acc_path = os.path.join(self.save_folder,'best_acc.pth')
             torch.save({"epoch": epoch,
                         "config": self.config,
                         "train_acc_list": self.train_acc_list,
@@ -131,7 +134,7 @@ class CheckPoint(object):
                         "best_epoch": self.best_epoch,
                         "model_state": model.state_dict()},
                        save_best_acc_path)
-            self.log.info('    save best_acc.pth:%s' % save_best_acc_path)
+            self.log.info('save best_acc.pth:%s' % save_best_acc_path)
         # 保留每次epoch的failure example
 
     def finish(self, epoch, epoch_start, epoch_stop):
