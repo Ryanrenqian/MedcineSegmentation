@@ -1,9 +1,10 @@
-import os
+import sys,os
+sys.path.append('..')
 import torch
 import math
 from  torch.nn import functional as F
 import openslide
-from  ..model.scannet import Scannet
+from  basic.model.scannet import Scannet
 import PIL
 import numpy as np
 from  torchvision import transforms
@@ -12,7 +13,7 @@ import time
 import glob,os
 from  skimage.color import rgb2hsv
 from  skimage.filters import threshold_otsu
-import pdb
+
 
 
 class PostScan():
