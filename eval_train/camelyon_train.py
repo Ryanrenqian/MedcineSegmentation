@@ -153,8 +153,7 @@ class Train(basic_train.BasicTrain):
             # if validation:
             #     best_epoch=self.valid(_model,epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
-            save_helper.save_epoch_pred(acc['epoch_acc_image'],
-                                        'train_hardmine_%d_epoch_%d.txt' % ( epoch))
+            save_helper.save_epoch_pred(acc['epoch_acc_image'],f'train_hardmine_{epoch}_epoch_%d.txt')
             save_helper.save_epoch_model(epoch, 'train', acc, losses, _model,iteration=iteration)
             time_counter.addval(time.time(), key='training epoch end')
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
