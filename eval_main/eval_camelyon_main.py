@@ -11,9 +11,6 @@ import glob
 import os
 import time
 
-import pdb
-
-
 parser = argparse.ArgumentParser(description='huangxs eval_main')
 parser.add_argument('-config', metavar='DIR', default='', help='config path')
 parser.add_argument('-resume', '--resume', default=None, type=int, help='resume path')
@@ -31,8 +28,7 @@ def eval_main():
     # load config
     config = config_base.ConfigBase(args.config)
     save_helper = checkpoint.CheckPoint(config)
-    # 获取模型    
-#    pdb.set_trace()
+    # 获取模型
     model = reflect.get_model(config)
     train, validate, test, hard = get_instance(config, model)
 
@@ -44,6 +40,13 @@ def eval_main():
     time_counter.addval(time.time(), key='model load')
     hard_mining_times=0
     validation= config.get_config("test", 'run_this_module')
+    base_dir=save_helper.save_folder
+    if not (config.get_config('train', 'resume', 'run_this_module') or config.get_config('test', 'run_this_module')):
+        for uid in range(1, 100):
+            save_dir = os.path.join(base_dir, f'{uid:02d}')
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+                save_helper.save_folder = save_dir
     if config.get_config("train", 'run_this_module') == True:
         train.train(model, hard_mining_times, save_helper,config,validation)
     # tain with hard_minning

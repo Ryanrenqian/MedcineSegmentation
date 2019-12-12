@@ -23,10 +23,6 @@ class CheckPoint(object):
         self.best_acc = 0
         self.best_epoch = 0
         self.save_folder = self.config.get_config('base', 'save_folder')
-        if not (config.get_config('train','resume','run_this_module') or config.get_config('test','run_this_module')):
-            iteration = 0
-            while (os.path.exists(self.save_folder)):
-                self.save_folder=self.save_folder+f'-{iteration}'
         file.check_mkdir(self.save_folder)
         self.log = logs.Log(os.path.join(self.save_folder, 'log.txt'))
 
