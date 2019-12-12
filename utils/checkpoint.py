@@ -42,7 +42,7 @@ class CheckPoint(object):
         f.writelines(json.dumps(epoch_image_results, indent=4))
         f.close()
 
-    def save_epoch_model(self, hard_mining_times, epoch, run_type, acc, losses, model):
+    def save_epoch_model(self,  epoch, run_type, acc, losses, model):
         """
         保存单轮的运行结果，但不保存模型，模型只保留best和最后一个
         :param epoch:
@@ -52,16 +52,13 @@ class CheckPoint(object):
         :return:
         """
         save_name = os.path.join(self.save_folder,
-                                 'hardmine_%d_epoch_%d_type_%s_acc_losses.pth' % (hard_mining_times, epoch, run_type))
+                                 f'epoch_{epoch}_type_{run_type}_acc_losses.pth' )
 
-        torch.save({"hard_mining_times": hard_mining_times,
-                    "epoch": epoch,
+        torch.save({"epoch": epoch,
                     "acc": acc,
                     "losses": losses}, save_name)
-        save_model_name = os.path.join(self.save_folder,
-                                       'hardmine_%d_epoch_%d_type_%s_model.pth' % (hard_mining_times, epoch, run_type))
-        torch.save({"hard_mining_times": hard_mining_times,
-                    "epoch": epoch,
+        save_model_name = os.path.join(self.save_folder,f"epoch_{epoch}_type_{run_type}_model.pth")
+        torch.save({"epoch": epoch,
                     "model_state": model.state_dict()}, save_model_name)
 
     def save(self, epoch, model, train_acc, losses, test_acc, iteration=None,time_counter=None):

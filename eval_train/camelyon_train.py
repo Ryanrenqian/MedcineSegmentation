@@ -45,10 +45,10 @@ class Train(basic_train.BasicTrain):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
-    def checkpoint(self,hard_mining_times,  model,save_helper):
+    def checkpoint(self,  model,save_helper):
         save_folder = save_helper.save_folder
         epoch = self.config.get_config('train', 'resume' ,'start_epoch')
-        checkpoint = os.path.join(save_folder,f'hardmine_{hard_mining_times}_epoch_{epoch}_type_train_model.pth')
+        checkpoint = os.path.join(save_folder,f'epoch_{epoch}_type_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
         model.load_state_dict(epoch_checkpoint['model_state'])
         iteration = epoch_checkpoint['iteration']
@@ -85,7 +85,7 @@ class Train(basic_train.BasicTrain):
         # self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
         #                                                     gamma=_params['lr_decay_factor'], last_epoch=10)
 
-    def train(self, _model,  hard_mining_times, save_helper,config,validation):
+    def train(self, _model, save_helper,config,validation):
         """单个epoch的train 参数在epoch中是原子操作
         :过程保存：1.将单轮epoch中对每个样本的分类情况记录下来 2.将模型通过checkpoint保存
         :
@@ -103,7 +103,7 @@ class Train(basic_train.BasicTrain):
             train_epoch_start = config.get_config("train","resume","start_epoch")+1
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
             self.log.info('resume checkpoint')
-            _model,iteration = self.checkpoint(hard_mining_times, _model,save_helper)
+            _model,iteration = self.checkpoint(_model,save_helper)
         _model.train()
         losses = counter.Counter()
         time_counter = counter.Counter()
@@ -126,12 +126,6 @@ class Train(basic_train.BasicTrain):
                 train_output=F.softmax(train_output)[:,1].detach()
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(train_output, train_labels, 0.5)
                 acc_batch = acc_batch_total
-                self.writer.add_scalar('acc_batch_total in train',acc_batch,iteration)
-                self.writer.add_scalar('acc_batch_total in train',acc_batch_total,iteration)
-                self.writer.add_scalar('acc_batch_pos in train',acc_batch_pos,iteration)
-                self.writer.add_scalar('acc_batch_neg in train',acc_batch_neg,iteration)
-                self.writer.add_scalar('loss in train',loss.item(),iteration)
-                self.writer.add_scalar('Lr',self.optimizer.state_dict()['param_groups'][0]['lr'])
                 acc['avg_counter_total'].addval(acc_batch_total)
                 acc['avg_counter_pos'].addval(acc_batch_pos)
                 acc['avg_counter_neg'].addval(acc_batch_neg)
@@ -149,14 +143,19 @@ class Train(basic_train.BasicTrain):
                         loss.item(),
                         losses.avg,
                         time_counter.interval()), '\r')
+            self.writer.add_scalar('acc_batch_total in train', acc['avg_counter_total'].avg, epoch)
+            self.writer.add_scalar('acc_batch_pos in train', acc['avg_counter_pos'].avg, epoch)
+            self.writer.add_scalar('acc_batch_neg in train', acc['avg_counter_neg'].avg, epoch)
+            self.writer.add_scalar('loss in train', losses.avg, epoch)
+            self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'])
 #             self.optimizer_schedule.step()
             # 增加validation部分
             # if validation:
             #     best_epoch=self.valid(_model,epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
             save_helper.save_epoch_pred(acc['epoch_acc_image'],
-                                        'train_hardmine_%d_epoch_%d.txt' % (hard_mining_times, epoch))
-            save_helper.save_epoch_model(hard_mining_times, epoch, 'train', acc, losses, _model,iteration=iteration)
+                                        'train_hardmine_%d_epoch_%d.txt' % ( epoch))
+            save_helper.save_epoch_model(epoch, 'train', acc, losses, _model,iteration=iteration)
             time_counter.addval(time.time(), key='training epoch end')
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
                                                                                             key_st='training epoch start'))))

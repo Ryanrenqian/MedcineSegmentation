@@ -27,31 +27,32 @@ def eval_main():
     args = parser.parse_args()
     # load config
     config = config_base.ConfigBase(args.config)
-    save_helper = checkpoint.CheckPoint(config)
-    # 获取模型
-    model = reflect.get_model(config)
-    train, validate, test, hard = get_instance(config, model)
-
-    # timer
-    time_counter = counter.Counter()
-    time_counter.addval(time.time(), key='eval_main start')
-
-    # eval
-    time_counter.addval(time.time(), key='model load')
-    hard_mining_times=0
-    validation= config.get_config("test", 'run_this_module')
-    base_dir=save_helper.save_folder
+    # auto update config
+    base_dir = config.config['base']['save_folder']
     if not (config.get_config('train', 'resume', 'run_this_module') or config.get_config('test', 'run_this_module')):
         for uid in range(1, 100):
             save_dir = os.path.join(base_dir, f'{uid:02d}')
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
-                save_helper.save_folder = save_dir
+                config.config['base']['save_folder'] = save_dir
+    save_helper = checkpoint.CheckPoint(config)
+    config.update_config()
+    # 获取模型
+    model = reflect.get_model(config)
+    train, validate, test, hard = get_instance(config, model)
+    # timer
+    time_counter = counter.Counter()
+    time_counter.addval(time.time(), key='eval_main start')
+    # eval
+    time_counter.addval(time.time(), key='model load')
+    validation= config.get_config("test", 'run_this_module')
+
+
     if config.get_config("train", 'run_this_module') == True:
-        train.train(model, hard_mining_times, save_helper,config,validation)
+        train.train(model,  save_helper,config,validation)
     # tain with hard_minning
     elif config.get_config('test','run_this_module') ==True:
-        test.test(model, 0, hard_mining_times, save_helper)
+        test.test(model, 0,  save_helper)
 
 
 
