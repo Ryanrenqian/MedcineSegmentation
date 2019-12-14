@@ -24,7 +24,7 @@ class ConfigBase(object):
         f_config.close()
         self.config = json.loads(_content)
 
-        self.update_config(self.config_path)
+        #self.update_config(self.config_path)
 
     def get_config(self, *args):
         """
@@ -39,7 +39,7 @@ class ConfigBase(object):
                 config_tree = None
         return config_tree
 
-    def update_config(self, save_path):
+    def update_config(self):
         """ 更新当前运行的配置"""
         last_run_date = timeutil.get_timestr()
         last_run_machine = file.get_machine_name(self.config['base']['save_folder'])
@@ -47,6 +47,6 @@ class ConfigBase(object):
         self.config['base']['last_run_date'] = last_run_date
 
         self.config['base']['last_run_machine'] = last_run_machine
-        f_config = open(save_path, 'w', encoding='utf-8')
+        f_config = open(self.config_path, 'w', encoding='utf-8')
         f_config.write(json.dumps(self.config, ensure_ascii=False, indent=2))
         f_config.close()

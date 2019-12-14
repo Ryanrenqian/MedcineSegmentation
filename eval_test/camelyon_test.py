@@ -6,13 +6,13 @@ from  torch.autograd import Variable
 import time
 import torch.nn.functional as F
 
-from basic.eval_test import BasicTest
-from basic.utils import image_transform
-from basic.data import camelyon_data
-from basic.utils import logs
-from basic.utils import counter
-from basic.utils import accuracy
-from basic.model import camelyon_models
+from ..eval_test import BasicTest
+from ..utils import image_transform
+from ..dataset import camelyon_data
+from ..utils import logs
+from ..utils import counter
+from ..utils import accuracy
+from ..model import camelyon_models
 
 import pdb
 import json

@@ -1,4 +1,5 @@
-import os
+import sys,os
+sys.path.append('..')
 import torch
 import math
 from  torch.nn import functional as F
@@ -12,7 +13,7 @@ import time
 import glob,os
 from  skimage.color import rgb2hsv
 from  skimage.filters import threshold_otsu
-import pdb
+
 
 
 class PostScan():
@@ -163,6 +164,4 @@ for parent, dirnames, filenames in os.walk(save_npy):
 print('saved:',saved)  
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
-    if filename == 'test_002':
-        final_probability_map=post.densereconstruction(slide_path,max_k=10)
-    print(filename in saved)
+    final_probability_map=post.densereconstruction(slide_path,max_k=10)

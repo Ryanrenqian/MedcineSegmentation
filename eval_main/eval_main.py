@@ -47,7 +47,7 @@ def eval_main():
     for i in range(train_epoch_start, train_epoch_stop):
         time_counter.addval(time.time(), key='eval epoch %d start' % i)
         train_acc, losses = train.train(model, i)
-        writer.add_scalar('loss in each epoch',loss,i)
+        writer.add_scalar('loss in each epoch',losses,i)
         if args.debug == 'false':
             test_acc = test.test(model, i)
             pass
