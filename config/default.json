@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 {
   "base": {
     "config_name": "用NCRF的40w数据来训练scannet对比模型",
@@ -105,11 +106,18 @@
     }
   }
 =======
+=======
+>>>>>>> 61c3b22903a3b0fd202ee46b274e0c64e4bb3efc
 {
   "base": {
     "config_name": "用NCRF的40w数据来训练scannet对比模型",
     "cmd_line": "python eval_main/eval_camelyon_main.py -config /root/workspace/renqian/1115/basic/config/camelyon16/Scannet/scannet_train_exp5.json",
+<<<<<<< HEAD
     "save_folder": "/root/workspace/renqian/1115/result/test",
+=======
+    "workspace": "/root/workspace/renqian/1115/result/test",
+    "expid": "test",
+>>>>>>> 61c3b22903a3b0fd202ee46b274e0c64e4bb3efc
     "dataset": "camelyon16",
     "train_tif_folder": "/root/workspace/dataset/CAMELYON16/training/*",
     "test_tif_folder": "/root/workspace/dataset/CAMELYON16/testing/images",
@@ -210,5 +218,9 @@
       "batch_iter": 1
     }
   }
+<<<<<<< HEAD
 >>>>>>> e7200bab618ed021bad6653beb6b9c6eb3f5b27e
 }
+=======
+}
+>>>>>>> 61c3b22903a3b0fd202ee46b274e0c64e4bb3efc
