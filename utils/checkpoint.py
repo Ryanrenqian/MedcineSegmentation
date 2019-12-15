@@ -32,7 +32,7 @@ class CheckPoint(object):
                                    self.config.get_config('base', 'resume_only_model'))
         config.update_config()
 
-    def save_epoch_pred(self, epoch_image_results, txt_name,type):
+    def save_epoch_pred(self, epoch_image_results, txt_name, type):
         pre_save=os.path.join(self.config.get_config('base', 'save_folder'), type)
         file.check_mkdir(pre_save)
         save_name = os.path.join(pre_save, txt_name)
@@ -52,14 +52,14 @@ class CheckPoint(object):
         """
         save_path = os.path.join(self.save_folder,'models')
         os.system(f'mkdir -p {save_path}')
-        save_name = os.path.join('epoch_%d_type_%s_acc_losses.pth' % ( epoch, run_type))
+        save_name = os.path.join(save_path,f'epoch_{epoch}_type_{run_type}_acc_losses.pth')
 
         torch.save({"iteration":iteration,
                     "epoch": epoch,
                     "acc": acc,
                     "losses": losses}, save_name)
-        save_model_name = os.path.join(self.save_folder,
-                                       'epoch_%d_type_%s_model.pth' % ( epoch, run_type))
+        save_model_name = os.path.join(save_path,
+                                       f'epoch_{epoch}_type_{run_type}_model.pth')
         torch.save({"epoch": epoch,
                     "model_state": model.state_dict()}, save_model_name)
 
