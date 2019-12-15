@@ -17,7 +17,7 @@ from  skimage.filters import threshold_otsu
 
 
 class PostScan():
-    def __init__(self, scannet,transform=None,save=None, mini_batch=16,dense_coefficient=2, maxpools=5, stride=2):
+    def __init__(self, scannet,transform=None,save=None,dense_coefficient=2, maxpools=5, stride=2):
         '''
 
         :param scannet: scannet 模型
@@ -34,7 +34,7 @@ class PostScan():
         self.lf = 244  # 输入Scannet的概率图
         self.transform = transform
         self.save =save
-        self.mini_batch=10
+
 
 
     def getopt(self,opts,roi_list):
@@ -106,7 +106,7 @@ class PostScan():
 #         print('dpts:',time.time()-time1)
         return dpt
 
-    def densereconstruction(self,slide_path,roi_path=None,max_k=82):
+    def densereconstruction(self,slide_path,otsu,resize,max_k=82,thres=0.1):
         '''
         :param slide_path:
         :param roi_path:
@@ -119,14 +119,14 @@ class PostScan():
         dense_i = h//self.sd
         dense_j = w//self.sd
         dense = torch.zeros((dense_i, dense_j)).cpu()  # 初始化dense
-        size = 2*(max_k+1)
+        size = self.alpha*(max_k+1)
         k_i = dense_i//size # 分成多块 行
         k_j = dense_j//size # 分成多块 列
         step = 260 + max_k * 32 # 每个WSI上区域的大小
-
         for i in range(k_i):
             for j  in range(k_j):
-                x,y=j*size*16-122,  i*size*16-122 # WSI 上的起始坐标从-122开始
+                x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
+                i_,j_ = y/resize,x/resize #映射到otsu
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
                 dense[i*size:(i+1)*size,j*size:(j+1)*size]=self.get_dpt(block,step,step)
@@ -140,14 +140,16 @@ class PostScan():
 
 test_slide_folder = '/root/workspace/dataset/CAMELYON16/testing/images/'
 test_slide_annotation_folder = '/root/workspace/dataset/CAMELYON16/testing/lesion_annotations/'
+resize = 32
+test_slide_ostu = '~/workspace/huangxs/prepare_data/16/wsi_otsu_save/test_resize_%d'%resize
 
 train_slide_folder = '/root/workspace/dataset/CAMELYON16/training/*'
 train_slide_annotation_folder = '/root/workspace/dataset/CAMELYON16/training/lesion_annotations/'
 slide_list = glob.glob(os.path.join(test_slide_folder, '*.tif'))
 slide_list.sort()
 print('total slide : %d' % len(slide_list))
-
 pth = '/root/workspace/renqian/0929/save/camelyon16/scannet_train_MSE_NCRF_40w_patch_256/2019-10-21_08-33-34/hardmine_0_epoch_9_type_train_model.pth'
+
 model = Scannet().cuda()
 model.eval()
 model = torch.nn.DataParallel(model,device_ids=[ 0,1,2,3])
@@ -155,7 +157,7 @@ model.load_state_dict(torch.load(pth)['model_state'])
 save_npy='/root/workspace/renqian/0929/scannet/11_20/'
 if not os.path.exists(save_npy):
     os.mkdir(save_npy)
-post = PostScan(scannet=model,save=save_npy)
+post = PostScan(scannet=model,save=save_npy,dense_coefficient=1)
 # 增加断点保存功能
 saved=[]
 for parent, dirnames, filenames in os.walk(save_npy):
@@ -164,4 +166,5 @@ for parent, dirnames, filenames in os.walk(save_npy):
 print('saved:',saved)  
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
-    final_probability_map=post.densereconstruction(slide_path,max_k=10)
+    ostu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
+    final_probability_map=post.densereconstruction(slide_path,otsu,resize,omax_k=10)
