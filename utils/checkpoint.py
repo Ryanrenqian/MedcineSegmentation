@@ -23,8 +23,6 @@ class CheckPoint(object):
         self.best_acc = 0
         self.best_epoch = 0
         self.save_folder = self.config.get_config('base', 'save_folder')
-
-        # file.check_mkdir(self.save_folder)
         self.log = logs.Log(os.path.join(self.save_folder, 'log.txt'))
 
         # 把运行的config备份到结果文件夹
@@ -34,8 +32,8 @@ class CheckPoint(object):
                                    self.config.get_config('base', 'resume_only_model'))
         config.update_config()
 
-    def save_epoch_pred(self, epoch_image_results, txt_name):
-        pre_save=os.path.join(self.config.get_config('base', 'save_folder'), 'test_result')
+    def save_epoch_pred(self, epoch_image_results, txt_name,type):
+        pre_save=os.path.join(self.config.get_config('base', 'save_folder'), type)
         file.check_mkdir(pre_save)
         save_name = os.path.join(pre_save, txt_name)
         print('\nsave file to %s' % save_name)
@@ -43,7 +41,7 @@ class CheckPoint(object):
         f.writelines(json.dumps(epoch_image_results, indent=4))
         f.close()
 
-    def save_epoch_model(self, hard_mining_times, epoch, run_type, acc, losses, model):
+    def save_epoch_model(self,  epoch, run_type, acc, losses, model, iteration):
         """
         保存单轮的运行结果，但不保存模型，模型只保留best和最后一个
         :param epoch:
@@ -56,7 +54,7 @@ class CheckPoint(object):
         os.system(f'mkdir -p {save_path}')
         save_name = os.path.join('epoch_%d_type_%s_acc_losses.pth' % ( epoch, run_type))
 
-        torch.save({"hard_mining_times": hard_mining_times,
+        torch.save({"iteration":iteration,
                     "epoch": epoch,
                     "acc": acc,
                     "losses": losses}, save_name)

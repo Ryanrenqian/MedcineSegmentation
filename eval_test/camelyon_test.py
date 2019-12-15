@@ -13,7 +13,7 @@ from ..utils import logs
 from ..utils import counter
 from ..utils import accuracy
 from ..model import camelyon_models
-
+from ..dataset import DynamicDataset,EvalDataset,ListDataset
 import pdb
 import json
 
@@ -39,6 +39,14 @@ class Test(BasicTest):
         """获取配置简易方式"""
         return self.config.get_config('test', name)
 
+    def checkpoint(self,  model,save_helper):
+        save_folder = os.path.join(save_helper.save_folder,'models')
+        epoch = self.config.get_config('test','epoch')
+        checkpoint = os.path.join(save_folder,f'epoch_{epoch}_type_train_model.pth')
+        epoch_checkpoint = torch.load(checkpoint)
+        model.load_state_dict(epoch_checkpoint['model_state'])
+        return model
+
     def load_data(self):
         _size = self.config.get_config('base', 'crop_size')
         test_transform = image_transform.get_test_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
@@ -50,9 +58,9 @@ class Test(BasicTest):
         return torch.utils.data.DataLoader(test_dataset, batch_size=self.cfg('batch_size'),
                                            shuffle=False, num_workers=self.cfg('num_workers'))
 
-    def test(self, _model, epoch, hard_mining_times, save_helper):
+    def test(self, _model, epoch,  save_helper):
+        _model = self.checkpoint(_model,save_helper)
         _model.eval()
-
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='test epoch start')
         # 1.生成单张的slide列表，按slide遍历，可以得到中间结果

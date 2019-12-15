@@ -18,7 +18,6 @@ class ConfigBase(object):
         self.key_to_config = {}
         self.config_list = []
         self.config_path = config_path
-
         f_config = open(config_path, 'r', encoding='utf-8')
         _content = f_config.read()
         f_config.close()
@@ -42,11 +41,11 @@ class ConfigBase(object):
     def update_config(self):
         """ 更新当前运行的配置"""
         last_run_date = timeutil.get_timestr()
-        last_run_machine = file.get_machine_name(self.config['base']['save_folder'])
+        last_run_machine = os.path.join(self.config['base']['save_folder'],"config")
         # 如果是恢复运行,使用之前的路径
         self.config['base']['last_run_date'] = last_run_date
 
         self.config['base']['last_run_machine'] = last_run_machine
-        f_config = open(self.config_path, 'w', encoding='utf-8')
+        f_config = open(last_run_machine, 'w', encoding='utf-8')
         f_config.write(json.dumps(self.config, ensure_ascii=False, indent=2))
         f_config.close()
