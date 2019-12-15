@@ -30,11 +30,10 @@ def eval_main():
     # auto update config
     base_dir = config.config['base']['save_folder']
     if not (config.get_config('train', 'resume', 'run_this_module') or config.get_config('test', 'run_this_module')):
-        for uid in range(1, 100):
-            save_dir = os.path.join(base_dir, f'{uid:02d}')
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
-                config.config['base']['save_folder'] = save_dir
+        iteration = 0
+        while (not os.path.exists(base_dir)):
+            base_dir = base_dir + f'_{iteration}'
+        os.system(f'mkdir - p {base_dir}')
     save_helper = checkpoint.CheckPoint(config)
     config.update_config()
     # 获取模型
