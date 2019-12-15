@@ -134,8 +134,7 @@ class Train(basic_train.BasicTrain):
                 time_counter.addval(time.time())
                 #             pdb.set_trace()
                 if i % self.config.get_config('base', 'print_freq', 'batch_iter') == 0:
-                    self.log.info(
-                    'train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, acc-iter/avg:[%.2f/%.2f]-[avg:%.2f-pos:%.2f-neg:%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
+                    self.log.info('train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, acc-iter/avg:[%.2f/%.2f]-[avg:%.2f-pos:%.2f-neg:%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
                         epoch, train_epoch_stop, i, len(self.train_loader),
                         self.optimizer.state_dict()['param_groups'][0]['lr'], acc_batch,
                         acc['avg_counter'].avg,

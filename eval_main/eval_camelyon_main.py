@@ -31,11 +31,11 @@ def eval_main():
     base_dir = config.config['base']['save_folder']
     if not (config.get_config('train', 'resume', 'run_this_module') or config.get_config('test', 'run_this_module')):
         iteration = 0
-        while (os.path.exists(base_dir)):
+        while (os.path.exists(f'{base_dir}_{iteration}')):
             iteration += 1
-            base_dir = f'{base_dir}_{iteration}'
             if iteration==100:
                 raise ValueError('based name has repeated too much times.')
+        base_dir = f'{base_dir}_{iteration}'
         print(base_dir)
         os.system(f'mkdir -p {base_dir}')
     config.config['base']['save_folder']=base_dir
