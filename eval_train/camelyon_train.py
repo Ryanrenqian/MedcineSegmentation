@@ -46,7 +46,7 @@ class Train(basic_train.BasicTrain):
         return self.config.get_config('train', name)
 
     def checkpoint(self,  model,save_helper):
-        save_folder = save_helper.save_folder
+        save_folder = os.path.join(save_helper.save_folder,'models')
         epoch = self.config.get_config('train', 'resume' ,'start_epoch')
         checkpoint = os.path.join(save_folder,f'epoch_{epoch}_type_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
