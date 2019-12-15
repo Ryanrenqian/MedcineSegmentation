@@ -33,7 +33,7 @@ class Train(basic_train.BasicTrain):
         """这里只解析和训练相关的参数，不对模型进行加载"""
         super(Train, self).__init__()
         self.config = config
-        save_folder = os.path.join(self.config.get_config('base', 'save_folder'),self.config.get_config('base', 'last_run_date'))
+        save_folder = config.get_config('base','save_folder')
         self.log = logs.Log(os.path.join(save_folder, "log.txt"))
         self.train_loader = self.load_data()
         writer_path = os.path.join(config.get_config('base','save_folder'),'visualize')
