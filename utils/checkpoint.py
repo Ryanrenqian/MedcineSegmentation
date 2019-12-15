@@ -55,8 +55,9 @@ class CheckPoint(object):
         :param losses:
         :return:
         """
-        save_name = os.path.join(self.save_folder,
-                                 'hardmine_%d_epoch_%d_type_%s_acc_losses.pth' % (hard_mining_times, epoch, run_type))
+        save_path = os.path.join(self.save_folder,'models')
+        os.system(f'mkdir -p {save_path}')
+        save_name = os.path.join('hardmine_%d_epoch_%d_type_%s_acc_losses.pth' % (hard_mining_times, epoch, run_type))
 
         torch.save({"hard_mining_times": hard_mining_times,
                     "epoch": epoch,
