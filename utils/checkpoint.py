@@ -31,7 +31,7 @@ class CheckPoint(object):
                 self.config.get_config('base', 'resume_checkpoint')) > 0:
             self.resume_checkpoint(self.config.get_config('base', 'resume_checkpoint'),
                                    self.config.get_config('base', 'resume_only_model'))
-        config.update_config(os.path.join(self.save_folder, 'config.json'))
+        config.update_config()
 
     def save_epoch_pred(self, epoch_image_results, txt_name):
         pre_save=os.path.join(self.config.get_config('base', 'save_folder'), 'test_result')
