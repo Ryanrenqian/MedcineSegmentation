@@ -23,6 +23,10 @@ class CheckPoint(object):
         self.best_acc = 0
         self.best_epoch = 0
         self.save_folder = self.config.get_config('base', 'save_folder')
+        if not (config.get_config('train','resume','run_this_module') or config.get_config('test','run_this_module')):
+            iteration = 0
+            while (not os.path.exists(self.save_folder)):
+                self.save_folder=self.save_folder+f'-{iteration}'
         file.check_mkdir(self.save_folder)
         self.log = logs.Log(os.path.join(self.save_folder, 'log.txt'))
 
@@ -42,7 +46,7 @@ class CheckPoint(object):
         f.writelines(json.dumps(epoch_image_results, indent=4))
         f.close()
 
-    def save_epoch_model(self,  epoch, run_type, acc, losses, model):
+    def save_epoch_model(self, hard_mining_times, epoch, run_type, acc, losses, model):
         """
         保存单轮的运行结果，但不保存模型，模型只保留best和最后一个
         :param epoch:
@@ -51,16 +55,18 @@ class CheckPoint(object):
         :param losses:
         :return:
         """
-
         save_path = os.path.join(self.save_folder,'models')
         os.system(f'mkdir -p {save_path}')
         save_name = os.path.join('hardmine_%d_epoch_%d_type_%s_acc_losses.pth' % (hard_mining_times, epoch, run_type))
 
-        torch.save({"epoch": epoch,
+        torch.save({"hard_mining_times": hard_mining_times,
+                    "epoch": epoch,
                     "acc": acc,
                     "losses": losses}, save_name)
-        save_model_name = os.path.join(self.save_folder,f"epoch_{epoch}_type_{run_type}_model.pth")
-        torch.save({"epoch": epoch,
+        save_model_name = os.path.join(self.save_folder,
+                                       'hardmine_%d_epoch_%d_type_%s_model.pth' % (hard_mining_times, epoch, run_type))
+        torch.save({"hard_mining_times": hard_mining_times,
+                    "epoch": epoch,
                     "model_state": model.state_dict()}, save_model_name)
 
     def save(self, epoch, model, train_acc, losses, test_acc, iteration=None,time_counter=None):
