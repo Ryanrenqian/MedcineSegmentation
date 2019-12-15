@@ -18,7 +18,6 @@ class RandomSampler(Sampler):
         self.data_source = data_source
         self._num_samples = num_samples
         self._sampled=set()
-        self._sample_ratio= len(self.sampled)/self._num_samples
         if not isinstance(self.num_samples, int) or self.num_samples <= 0:
             raise ValueError("num_samples should be a positive integer "
                              "value, but got num_samples={}".format(self.num_samples))
