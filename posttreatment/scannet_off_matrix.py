@@ -133,7 +133,7 @@ class PostScan():
             for j  in range(k_j):
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
                 # 映射到otsu的坐标
-                i_st,j_st = y//resize,x//resize
+                i_st,j_st = (y+122)//resize,(x+122)//resize
                 if filterregion(i_st,j_st,otsu_size):
                     continue
                 block = slide.read_region((x, y), 0, (step, step))
