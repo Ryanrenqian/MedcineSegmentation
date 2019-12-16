@@ -151,7 +151,7 @@ class PostScan():
 test_slide_folder = '/root/workspace/dataset/CAMELYON16/testing/images/'
 test_slide_annotation_folder = '/root/workspace/dataset/CAMELYON16/testing/lesion_annotations/'
 resize = 32
-test_slide_ostu = '~/workspace/huangxs/prepare_data/16/wsi_otsu_save/test_resize_%d'%resize
+test_slide_ostu = '/root/workspace/huangxs/prepare_data/16/wsi_otsu_save/test_resize_%d'%resize
 
 train_slide_folder = '/root/workspace/dataset/CAMELYON16/training/*'
 train_slide_annotation_folder = '/root/workspace/dataset/CAMELYON16/training/lesion_annotations/'
