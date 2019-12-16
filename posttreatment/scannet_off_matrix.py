@@ -177,6 +177,7 @@ def main():
     print('total slide : %d' % len(slide_list))
     with open(os.path.join(save_npy, 'log.txt'), 'w')as f:
         f.write(pth + '\n' + save_npy)
+        f.write(str(args))
     post = PostScan(scannet=model, save=save_npy, dense_coefficient=args.dense)
     # 增加断点保存功能
     saved = []
@@ -188,7 +189,7 @@ def main():
         filename = os.path.basename(slide_path).rstrip('.tif')
         st = time.time()
         if filename in saved:
-            print('pass filename')
+            print(f'pass {filename}')
             continue
         otsu = np.load(os.path.join(test_slide_ostu, filename + '_resize_%d.npy' % resize))
         print(np.sum(otsu))
