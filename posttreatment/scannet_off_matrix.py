@@ -149,12 +149,12 @@ def getargs():
     parser = argparse.ArgumentParser(description='scannet dense reconstruction')
     parser.add_argument('-slide_folder', default='/root/workspace/dataset/CAMELYON16/testing/images/', help='config path')
     parser.add_argument('-pth', default='/root/workspace/renqian/0929/save/camelyon16/scannet_train_MSE_NCRF_40w_patch_256/2019-10-21_08-33-34/hardmine_0_epoch_9_type_train_model.pth', )
-    parser.add_argument('-resize', default=64, help='resolution')
+    parser.add_argument('-resize', default=64, help='resolution',type=int)
     parser.add_argument('-otsu',default='/root/workspace/huangxs/prepare_data/16/wsi_otsu_save/')
     parser.add_argument('-save',default='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256')
-    parser.add_argument('-dense', default=2)
-    parser.add_argument('-k',default=82)
-    parser.add_argument('-thres',default=0.01)
+    parser.add_argument('-dense', default=2,type=int)
+    parser.add_argument('-k',default=82,type=int)
+    parser.add_argument('-thres',default=0.01,type=float)
     return parser.parse_args()
 
 def main():
