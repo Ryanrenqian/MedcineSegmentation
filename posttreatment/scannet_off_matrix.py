@@ -171,8 +171,6 @@ def main():
     print('total slide : %d' % len(slide_list))
     with open(os.path.join(save_npy, 'log.txt'), 'w')as f:
         f.write(pth + '\n' + save_npy)
-    if not os.path.exists(save_npy):
-        os.mkdir(save_npy)
     post = PostScan(scannet=model, save=save_npy, dense_coefficient=1)
     # 增加断点保存功能
     saved = []
