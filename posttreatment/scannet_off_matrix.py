@@ -127,7 +127,7 @@ class PostScan():
         size = otsu.size
         def filterregion(i_st, j_st,size):
             gap = step//resize
-            count = np.sum(otsu[i_st,j_st])
+            count = np.sum(otsu[i_st:i_st+gap,j_st:j_st+gap])
             return count//size < threshold
 
         for i in range(k_i):
@@ -180,6 +180,6 @@ for slide_path in slide_list:
     filename=os.path.basename(slide_path).rstrip('.tif')
     st=time.time()
     otsu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
-    final_probability_map=post.densereconstruction(slide_path,otsu ,resize,omax_k=10)
+    final_probability_map=post.densereconstruction(slide_path, otsu ,resize,max_k=10)
     ed =time.time()
     print(f'time: {ed-st} in {filename}')
