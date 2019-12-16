@@ -170,7 +170,7 @@ def main():
 
     model = Scannet().cuda()
     model.eval()
-    model = torch.nn.DataParallel(model, device_ids=[0, 1])
+    model = torch.nn.DataParallel(model)
     model.load_state_dict(torch.load(pth)['model_state'])
     slide_list = glob.glob(os.path.join(slide_folder, '*.tif'))
     slide_list.sort()
@@ -192,7 +192,7 @@ def main():
             print(f'pass {filename}')
             continue
         otsu = np.load(os.path.join(test_slide_ostu, filename + '_resize_%d.npy' % resize))
-        print(np.sum(otsu))
+        print(f"handle {filename}: {np.sum(otsu)} ostu forward")
         post.densereconstruction(slide_path, otsu, resize, max_k=args.k, threshold=args.thres)
         ed = time.time()
         print(f'time: {ed - st} in {filename}')
