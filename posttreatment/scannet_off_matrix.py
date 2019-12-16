@@ -82,7 +82,7 @@ class PostScan():
                     dpt[w_, h_] = opts[i, j][w, h]
             return dpt
         x, y = 0, 0
-        st = time.time()
+        # st = time.time()
         hp, wp = int(hi - self.sd *(self.alpha - 1)), int(wi - self.sd * (self.alpha - 1))  #计算ROI区域大小
         ho, wo = int((hp - self.lf) / self.sf) + 1, int((wp - self.lf) / self.sf) + 1 #计算ROI区域的Lp值
         opts = torch.zeros((self.alpha,self.alpha,wo,ho)).cpu() # 初始化opts矩阵
@@ -106,7 +106,8 @@ class PostScan():
 #         print('dpts:',time.time()-time1)
         return dpt
 
-    def densereconstruction(self,slide_path,otsu,resize,max_k=82,thres=0.1):
+
+    def densereconstruction(self,slide_path,otsu,resize,max_k=82,threshold=0.1):
         '''
         :param slide_path:
         :param roi_path:
@@ -123,10 +124,19 @@ class PostScan():
         k_i = dense_i//size # 分成多块 行
         k_j = dense_j//size # 分成多块 列
         step = 260 + max_k * 32 # 每个WSI上区域的大小
+        size = otsu.size
+        def filterregion(i_st, j_st,size):
+            gap = step//resize
+            count = np.sum(otsu[i_st,j_st])
+            return count//size < threshold
+
         for i in range(k_i):
             for j  in range(k_j):
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
-                i_,j_ = y/resize,x/resize #映射到otsu
+                # 映射到otsu的坐标
+                i_st,j_st = y//resize,x//resize
+                if filterregion(i_st,j_st,size):
+                    continue
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
                 dense[i*size:(i+1)*size,j*size:(j+1)*size]=self.get_dpt(block,step,step)

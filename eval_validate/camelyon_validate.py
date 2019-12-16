@@ -1,5 +1,6 @@
 
-from basic.data import camelyon_data
+from basic.dataset import camelyon_data
+from ..dataset.dynamic_dataset import ListDataset
 import torchvision.models as models
 import torchvision.transforms as transforms
 # 血液细胞评测

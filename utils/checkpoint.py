@@ -41,6 +41,15 @@ class CheckPoint(object):
         f.writelines(json.dumps(epoch_image_results, indent=4))
         f.close()
 
+# 这里用来保存hard example
+    def save_hard_example(self,filename,records):
+        save_path = os.path.join(self.config.get_config('base', 'save_folder'),'hard')
+        file.check_mkdir(save_path)
+        save = os.path.join(save_path,filename)
+        with open(os.path.join(save_path,filename),'w')as f:
+            f.writelines(records)
+        return save
+
     def save_epoch_model(self,  epoch, run_type, acc, losses, model, iteration):
         """
         保存单轮的运行结果，但不保存模型，模型只保留best和最后一个

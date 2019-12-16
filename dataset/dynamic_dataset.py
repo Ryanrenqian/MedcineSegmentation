@@ -48,8 +48,7 @@ class ListDataset(data.Dataset):
         input_img = None
         # print(_x,_y,slide_name)
         try:
-            img = slide.read_region((_x, _y), 0, [self.patch_size, self.patch_size]).convert(
-                'RGB')
+            img = slide.read_region((_x, _y), 0, [self.patch_size, self.patch_size]).convert('RGB')
             input_img = self.transform(img)
         except Exception as e:
             print(str(e))

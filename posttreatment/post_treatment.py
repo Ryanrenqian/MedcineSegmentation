@@ -53,8 +53,6 @@ class ScanNetPost():
             max_p = np.max(fpm_filter[labels == i])
             ed = time.time()
             logging.info('each Iter, max_p st-ed: %.4f' % (ed - st))
-            if max_p == 0:  # 无须再添加normal的值
-                continue
             fpm_filter[labels == i] = max_p  # 取最大概率
             ed2 = time.time()
             logging.info('each Iter, filter st-ed: %.4f' % (ed2 - ed))

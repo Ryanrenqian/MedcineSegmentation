@@ -1,0 +1,106 @@
+{
+  "base": {
+    "config_name": "用NCRF的40w数据来训练scannet对比模型",
+    "cmd_line": "",
+    "save_folder": "/root/workspace/renqian/1115/result/exp5",
+    "dataset": "camelyon16",
+    "train_tif_folder": "/root/workspace/dataset/CAMELYON16/training/*",
+    "test_tif_folder": "/root/workspace/dataset/CAMELYON16/testing/images",
+    "print_freq": {
+      "epoch": 1,
+      "batch_iter": 1
+    },
+    "checkpoint_save_freq": 1,
+    "epoch_save_freq": 1,
+    "last_run_date": "2019-12-15_06-51-27",
+    "last_run_machine": "no specific machine",
+    "resume_checkpoint": "",
+    "resume_only_model": true,
+    "patch_size": 256,
+    "crop_size": 244
+  },
+  "model": {
+    "model_module": "camelyon_models",
+    "model_function": "scannet_0",
+    "model_name": "scannet",
+    "pretrained": false,
+    "params": {}
+  },
+  "train": {
+    "normal_list": "/root/workspace/renqian/1115/patch_list/exp5/train_normal.list",
+    "tumor_list": "/root/workspace/renqian/1115/patch_list/exp5/train_tumor.list",
+    "replacement": true,
+    "run_this_module": true,
+    "module_name": "camelyon_train",
+    "class_name": "Train",
+    "image_normalize": "camelyon16",
+    "batch_size": 256,
+    "num_workers": 20,
+    "total_epoch": 121,
+    "method": {
+      "type": "on_the_fly",
+      "datasize": 400000
+    },
+    "params": {
+      "lr_start": 0.0001,
+      "lr_decay_epoch": 5,
+      "lr_decay_factor": 0.1,
+      "patience": 2,
+      "threshold": 5e-05,
+      "momentum": 0.9,
+      "weight_decay": 0.0001,
+      "criterion": "CrossEntropyLoss",
+      "optimizer": "SGD"
+    },
+    "resume": {
+      "run_this_module": true,
+      "start_epoch": 120,
+      "total_epoch": 50,
+      "resume_checkpoint": ""
+    }
+  },
+  "validate": {
+    "run_this_module": false,
+    "vailidation_list": "",
+    "module_name": "camelyon_validate",
+    "class_name": "Validate",
+    "image_normalize": "camelyon16",
+    "batch_size": 64,
+    "num_workers": 32,
+    "print_freq": {
+      "epoch": 1,
+      "batch_iter": 1
+    }
+  },
+  "test": {
+    "run_this_module": false,
+    "test_list": "/root/workspace/huangxs/prepare_data/16/patch_list/camelyon16_64_all_test.txt",
+    "start_index": 0,
+    "end_index": 131,
+    "module_name": "camelyon_test",
+    "class_name": "Test",
+    "image_normalize": "camelyon16",
+    "batch_size": 128,
+    "num_workers": 32,
+    "resume": {
+      "resume_checkpoint": ""
+    },
+    "print_freq": {
+      "epoch": 1,
+      "batch_iter": 1
+    }
+  },
+  "hard": {
+    "run_this_module": false,
+    "hard_mining_list": "",
+    "module_name": "camelyon_hard",
+    "class_name": "Hard",
+    "image_normalize": "camelyon16",
+    "batch_size": 128,
+    "num_workers": 32,
+    "print_freq": {
+      "epoch": 1,
+      "batch_iter": 1
+    }
+  }
+}
