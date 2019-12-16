@@ -4,7 +4,7 @@ import torch
 import math
 from  torch.nn import functional as F
 import openslide
-from  scannet import Scannet
+from  basic.model.scannet import Scannet
 import PIL
 import numpy as np
 from  torchvision import transforms
@@ -161,7 +161,7 @@ pth = '/root/workspace/renqian/0929/save/camelyon16/scannet_train_MSE_NCRF_40w_p
 
 model = Scannet().cuda()
 model.eval()
-model = torch.nn.DataParallel(model,device_ids=[ 0,1,2,3])
+model = torch.nn.DataParallel(model,device_ids=[ 0,1])
 model.load_state_dict(torch.load(pth)['model_state'])
 save_npy='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256'
 with open(os.path.join(save_npy,'log.txt'),'w')as f:
@@ -180,6 +180,6 @@ for slide_path in slide_list:
     st=time.time()
     otsu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
     print(otsu)
-    final_probability_map=post.densereconstruction(slide_path, otsu ,resize,max_k=10)
+    final_probability_map=post.densereconstruction(slide_path, otsu ,resize,max_k=50,threshold=0.01)
     ed =time.time()
     print(f'time: {ed-st} in {filename}')
