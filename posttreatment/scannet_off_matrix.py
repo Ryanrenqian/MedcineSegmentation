@@ -179,7 +179,7 @@ for slide_path in slide_list:
     filename=os.path.basename(slide_path).rstrip('.tif')
     st=time.time()
     otsu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
-    print(otsu)
+    print(np.sum(otsu))
     final_probability_map=post.densereconstruction(slide_path, otsu ,resize,max_k=50,threshold=0.01)
     ed =time.time()
     print(f'time: {ed-st} in {filename}')
