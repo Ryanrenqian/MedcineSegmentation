@@ -153,6 +153,8 @@ def getargs():
     parser.add_argument('-otsu',default='/root/workspace/huangxs/prepare_data/16/wsi_otsu_save/')
     parser.add_argument('-save',default='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256')
     parser.add_argument('-dense', default=2)
+    parser.add_argument('-k',default=82)
+    parser.add_argument('-thres',default=0.01)
     return parser.parse_args()
 
 def main():
@@ -162,8 +164,10 @@ def main():
     resize = args.resize
     test_slide_ostu = os.path.join(args.otsu,'test_resize_%d'%resize)
     save_npy = args.save
-    os.system(f'mkdir -p {save_npy}')
     pth = args.pth
+
+    os.system(f'mkdir -p {save_npy}')
+
     model = Scannet().cuda()
     model.eval()
     model = torch.nn.DataParallel(model, device_ids=[0, 1])
@@ -173,20 +177,22 @@ def main():
     print('total slide : %d' % len(slide_list))
     with open(os.path.join(save_npy, 'log.txt'), 'w')as f:
         f.write(pth + '\n' + save_npy)
-    post = PostScan(scannet=model, save=save_npy, dense_coefficient=1)
+    post = PostScan(scannet=model, save=save_npy, dense_coefficient=args.dense)
     # 增加断点保存功能
     saved = []
     for parent, dirnames, filenames in os.walk(save_npy):
         for filename in filenames:
             saved.append(filename.rstrip('_fpm.npy'))
     print('saved:', saved)
-
     for slide_path in slide_list:
         filename = os.path.basename(slide_path).rstrip('.tif')
         st = time.time()
+        if filename in saved:
+            print('pass filename')
+            continue
         otsu = np.load(os.path.join(test_slide_ostu, filename + '_resize_%d.npy' % resize))
         print(np.sum(otsu))
-        final_probability_map = post.densereconstruction(slide_path, otsu, resize, max_k=50, threshold=0.1)
+        final_probability_map = post.densereconstruction(slide_path, otsu, resize, max_k=args.k, threshold=args.thres)
         ed = time.time()
         print(f'time: {ed - st} in {filename}')
 if __name__ == "__main__":
