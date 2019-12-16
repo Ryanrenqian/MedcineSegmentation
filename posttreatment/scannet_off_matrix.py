@@ -160,8 +160,8 @@ def main():
     resize = args.resize
     test_slide_ostu = os.path.join(args.otsu,'test_resize_%d'%resize)
     save_npy = args.save
+    os.system(f'mkdir -p {save_npy}')
     pth = args.pth
-
     model = Scannet().cuda()
     model.eval()
     model = torch.nn.DataParallel(model, device_ids=[0, 1])
