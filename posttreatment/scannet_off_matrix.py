@@ -125,10 +125,10 @@ class PostScan():
         k_j = dense_j//size # 分成多块 列
         step = 260 + max_k * 32 # 每个WSI上区域的大小
         otsu_size = otsu.size
-        def filterregion(i_st, j_st,size):
+        def filterregion(i_st, j_st):
             gap = step//resize
             count = np.sum(otsu[i_st:i_st+gap,j_st:j_st+gap])
-            return count//size < threshold
+            return count//gap*gap < threshold
         for i in range(k_i):
             for j  in range(k_j):
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
@@ -145,6 +145,7 @@ class PostScan():
             print('savepath:%s' % filepath)
             np.save(filepath, npfpm)
         # return dense
+
 def getargs():
     parser = argparse.ArgumentParser(description='scannet dense reconstruction')
     parser.add_argument('-slide_folder', default='/root/workspace/dataset/CAMELYON16/testing/images/', help='config path')
