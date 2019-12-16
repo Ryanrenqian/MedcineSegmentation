@@ -134,7 +134,7 @@ class PostScan():
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
                 # 映射到otsu的坐标
                 i_st,j_st = (y+122)//resize,(x+122)//resize
-                if filterregion(i_st,j_st,otsu_size):
+                if filterregion(i_st,j_st,otsu_size) and threshold:
                     continue
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
