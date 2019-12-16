@@ -124,9 +124,8 @@ class PostScan():
         k_i = dense_i//size # 分成多块 行
         k_j = dense_j//size # 分成多块 列
         step = 260 + max_k * 32 # 每个WSI上区域的大小
-        otsu_size = otsu.size
+        gap = step // resize
         def filterregion(i_st, j_st):
-            gap = step//resize
             count = np.sum(otsu[i_st:i_st+gap,j_st:j_st+gap])
             return count//gap*gap < threshold
         for i in range(k_i):
@@ -134,7 +133,7 @@ class PostScan():
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
                 # 映射到otsu的坐标
                 i_st,j_st = (y+122)//resize,(x+122)//resize
-                if filterregion(i_st,j_st,otsu_size) and threshold:
+                if filterregion(i_st,j_st) and threshold:
                     continue
                 block = slide.read_region((x, y), 0, (step, step))
                 dpt = self.get_dpt(block, step, step)
