@@ -129,7 +129,6 @@ class PostScan():
             gap = step//resize
             count = np.sum(otsu[i_st:i_st+gap,j_st:j_st+gap])
             return count//size < threshold
-
         for i in range(k_i):
             for j  in range(k_j):
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
@@ -164,7 +163,7 @@ model = Scannet().cuda()
 model.eval()
 model = torch.nn.DataParallel(model,device_ids=[ 0,1,2,3])
 model.load_state_dict(torch.load(pth)['model_state'])
-save_npy='/root/workspace/renqian/0929/scannet/11_20/'
+save_npy='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256'
 with open(os.path.join(save_npy,'log.txt'),'w')as f:
     f.write(pth+'\n'+save_npy)
 if not os.path.exists(save_npy):
@@ -180,6 +179,7 @@ for slide_path in slide_list:
     filename=os.path.basename(slide_path).rstrip('.tif')
     st=time.time()
     otsu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
+    print(otsu)
     final_probability_map=post.densereconstruction(slide_path, otsu ,resize,max_k=10)
     ed =time.time()
     print(f'time: {ed-st} in {filename}')
