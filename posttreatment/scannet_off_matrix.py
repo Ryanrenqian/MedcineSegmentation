@@ -188,5 +188,5 @@ def main():
         final_probability_map = post.densereconstruction(slide_path, otsu, resize, max_k=50, threshold=0.1)
         ed = time.time()
         print(f'time: {ed - st} in {filename}')
-
-
+if __name__ == "__main__":
+    main()
