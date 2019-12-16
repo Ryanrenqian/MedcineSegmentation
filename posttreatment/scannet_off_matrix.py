@@ -175,8 +175,11 @@ saved=[]
 for parent, dirnames, filenames in os.walk(save_npy):
     for filename in filenames:
         saved.append(filename.rstrip('_fpm.npy'))
-print('saved:',saved)  
+print('saved:',saved)
 for slide_path in slide_list: 
     filename=os.path.basename(slide_path).rstrip('.tif')
-    ostu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
-    final_probability_map=post.densereconstruction(slide_path,otsu,resize,omax_k=10)
+    st=time.time()
+    otsu = np.load(os.path.join(test_slide_ostu,filename+'_resize_%d.npy'%resize))
+    final_probability_map=post.densereconstruction(slide_path,otsu ,resize,omax_k=10)
+    ed =time.time()
+    print(f'time: {ed-st} in {filename}')
