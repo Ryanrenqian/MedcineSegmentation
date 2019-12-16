@@ -141,7 +141,7 @@ class PostScan():
                 dpt = self.get_dpt(block, step, step)
                 dense[i*size:(i+1)*size,j*size:(j+1)*size]=self.get_dpt(block,step,step)
         if self.save:
-            npfpm = final_probability_map.numpy()
+            npfpm = dense.numpy()
             filepath = os.path.join(self.save, '%s_fpm.npy' % basename)
             print('savepath:%s' % filepath)
             np.save(filepath, npfpm)
