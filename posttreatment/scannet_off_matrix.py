@@ -152,6 +152,7 @@ def getargs():
     parser.add_argument('-resize', default=64, help='resolution')
     parser.add_argument('-otsu',default='/root/workspace/huangxs/prepare_data/16/wsi_otsu_save/')
     parser.add_argument('-save',default='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256')
+    parser.add_argument('-dense', default=2)
     return parser.parse_args()
 
 def main():
