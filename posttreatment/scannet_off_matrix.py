@@ -156,6 +156,7 @@ def getargs():
 
 def main():
     args=getargs()
+    print(args)
     slide_folder = args.slide_folder
     resize = args.resize
     test_slide_ostu = os.path.join(args.otsu,'test_resize_%d'%resize)
