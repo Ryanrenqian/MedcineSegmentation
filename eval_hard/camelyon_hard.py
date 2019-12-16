@@ -114,6 +114,7 @@ class Hard(BasicHard):
         # Fine tune models
         model.train()
         criterion = nn.CrossEntropyLoss()
+        losses = counter.Counter()
         for epoch in range(self.config.get_config('hard','finetune','epoch'))
             for i,data in enumerate(self.load_hard_data(), 0):
                 input, labels, path_list = data
@@ -130,7 +131,7 @@ class Hard(BasicHard):
                 #             pdb.set_trace()
                 output = F.softmax(output)[:, 1].detach()
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output, labels,0.5)
-
+            save_helper.save_epoch_model( epoch, "hard", acc, losses, model, None)
 
 
 
