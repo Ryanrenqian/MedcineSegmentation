@@ -170,7 +170,7 @@ def main():
 
     model = Scannet().cuda()
     model.eval()
-    model = torch.nn.DataParallel(model)
+    model = torch.nn.DataParallel(model, device_ids=[0, 1, 2, 3])
     model.load_state_dict(torch.load(pth)['model_state'])
     slide_list = glob.glob(os.path.join(slide_folder, '*.tif'))
     slide_list.sort()
