@@ -14,7 +14,7 @@ import glob,os
 from  skimage.color import rgb2hsv
 from  skimage.filters import threshold_otsu
 import argparse
-
+from tqdm import tqdm
 
 class PostScan():
     def __init__(self, scannet,transform=None,save=None,dense_coefficient=2, maxpools=5, stride=2):
@@ -128,7 +128,7 @@ class PostScan():
         def filterregion(i_st, j_st):
             count = np.sum(otsu[i_st:i_st+gap,j_st:j_st+gap])
             return count//gap*gap < threshold
-        for i in range(k_i):
+        for i in tqdm(range(k_i)):
             for j  in range(k_j):
                 x,y=j*size*self.sd-122,  i*size*self.sd-122 # WSI 上的起始坐标从-122开始
                 # 映射到otsu的坐标
