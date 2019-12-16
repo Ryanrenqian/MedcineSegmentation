@@ -144,7 +144,7 @@ class PostScan():
             filepath = os.path.join(self.save, '%s_fpm.npy' % basename)
             print('savepath:%s' % filepath)
             np.save(filepath, npfpm)
-        return dense
+        # return dense
 def getargs():
     parser = argparse.ArgumentParser(description='scannet dense reconstruction')
     parser.add_argument('-slide_folder', default='/root/workspace/dataset/CAMELYON16/testing/images/', help='config path')
@@ -193,7 +193,7 @@ def main():
             continue
         otsu = np.load(os.path.join(test_slide_ostu, filename + '_resize_%d.npy' % resize))
         print(np.sum(otsu))
-        final_probability_map = post.densereconstruction(slide_path, otsu, resize, max_k=args.k, threshold=args.thres)
+        post.densereconstruction(slide_path, otsu, resize, max_k=args.k, threshold=args.thres)
         ed = time.time()
         print(f'time: {ed - st} in {filename}')
 if __name__ == "__main__":
