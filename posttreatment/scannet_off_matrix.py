@@ -165,6 +165,8 @@ model.eval()
 model = torch.nn.DataParallel(model,device_ids=[ 0,1,2,3])
 model.load_state_dict(torch.load(pth)['model_state'])
 save_npy='/root/workspace/renqian/0929/scannet/11_20/'
+with open(os.path.join(save_npy,'log.txt'),'w')as f:
+    f.write(pth+'\n'+save_npy)
 if not os.path.exists(save_npy):
     os.mkdir(save_npy)
 post = PostScan(scannet=model,save=save_npy,dense_coefficient=1)

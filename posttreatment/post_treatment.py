@@ -1,5 +1,6 @@
 import numpy as np
 import sys, pdb
+sys.path.append('..')
 import glob, os
 import matplotlib.pyplot as plt
 import csv
