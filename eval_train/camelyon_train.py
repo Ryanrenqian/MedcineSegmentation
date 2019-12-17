@@ -51,7 +51,7 @@ class Train(basic_train.BasicTrain):
         checkpoint = os.path.join(save_folder,f'epoch_{epoch}_type_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
         model.load_state_dict(epoch_checkpoint['model_state'])
-        iteration = epoch_checkpoint['iteration']
+        iteration = epoch_checkpoint.get_default('iteration',0)
         return model,iteration
 
     def load_data(self):
