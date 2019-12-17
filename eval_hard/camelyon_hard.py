@@ -115,7 +115,7 @@ class Hard(BasicHard):
         model.train()
         criterion = nn.CrossEntropyLoss()
         losses = counter.Counter()
-        for epoch in range(self.config.get_config('hard','finetune','epoch'))
+        for epoch in range(self.config.get_config('hard','finetune','epoch')):
             for i,data in enumerate(self.load_hard_data(), 0):
                 input, labels, path_list = data
                 if torch.cuda.is_available():
