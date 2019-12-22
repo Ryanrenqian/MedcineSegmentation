@@ -240,3 +240,6 @@ def main():
     for i in range(len(eval_threshold)):
         logging.info('Avg FP = %.2f  Sensitivity = %.4f' % (eval_threshold[i], eval_TPs[i]))
     logging.info('\navg score @FP %s = %.4f' % (str(eval_threshold), np.mean(eval_TPs)))
+
+if __name__=='__main__':
+    main()
