@@ -76,7 +76,7 @@ class Validate(basic_validate.BasicValidate):
         for i, data in enumerate(self.load_data(), 0):
             _input, _labels, path_list = data
             # forward and step
-            if self.is_cuda:
+            if torch.cuda.is_available():
                 _input = Variable(_input.type(torch.cuda.FloatTensor))
             else:
                 _input = Variable(_input.type(torch.FloatTensor))
