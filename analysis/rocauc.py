@@ -226,10 +226,10 @@ def main():
             prob, x, y = line.split(',')
             prob_max = max(prob_max, float(prob))
         slide_prob_nms[tif_name] = float(prob_max)
-    slide_list = glob.glob(os.path.join(args.slide_folder, '*.tif'))
+    logging.info(f'example: slide_prob_nms[{tif_name}]:{slide_prob_nms[tif_name]}')
     #     pdb.set_trace()
     slide_gt_dict = {}
-
+    slide_list = glob.glob(os.path.join(args.slide_folder, '*.tif'))
     for slide_name in slide_list:
         slide_basename = os.path.basename(slide_name)
         slide_gt_dict[slide_basename] = 0
