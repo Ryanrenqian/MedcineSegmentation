@@ -98,7 +98,7 @@ class Hard(BasicHard):
         -------
 
         '''
-        model = self.checkpoint(model, save_helper)
+        model = self.checkpoint(model, epoch)
         model.eval()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='test epoch start')
