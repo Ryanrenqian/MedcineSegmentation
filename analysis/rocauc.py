@@ -42,7 +42,6 @@ def statistics(slide_label, slide_avg_prob):
             if _label == 0:  # 负样本
                 temp_FP += 0 if _prob_correct else 1
                 temp_TN += 1 if _prob_correct else 0
-
         TP.append(temp_TP)
         FP.append(temp_FP)
         FN.append(temp_FN)
@@ -51,10 +50,10 @@ def statistics(slide_label, slide_avg_prob):
     FN = np.asarray(FN).astype('float32')
     TN = np.asarray(TN).astype('float32')
     FP = np.asarray(FP).astype('float32')
-    TPR = (TP) / (TP + FN + 0.001)  # 防止为0
-    Specificity = (TN) / (TN + FP + 0.001)  # 防止为0
+    TPR = (TP) / (TP + FN + 0.0001)  # 防止为0
+    Specificity = (TN) / (TN + FP + 0.0001)  # 防止为0
     FPR = 1 - Specificity
-    Precision = (TP) / (TP + FP + 0.001)  # 防止为0
+    Precision = (TP) / (TP + FP + 0.0001)  # 防止为0
     Recall = TPR
     AUC = np.round(np.sum((TPR[1:] + TPR[:-1]) * (FPR[:-1] - FPR[1:])) / 2., 4)
     return TP, FP, TN, FN, TPR, FPR, Precision, Recall, AUC
@@ -189,13 +188,6 @@ def generate_csv_by_nms(probs_map, prob_thred, csv_path, radius=12):
     outfile.close()
 
 
-def handle_generate_csv(prob_map, csv_folder, basename, share_dict, lock):
-    """
-    多进程处理保存prob map的可视化结果
-    """
-    csv = os.path.join(csv_folder, '%s.csv' % basename)
-    save_prob_map(prob_map, prob_map_folder, basename)
-    wsi_max_prob = generate_csv_by_nms(prob_map, 0.5, csv, 8, avg=False)
 
 def getargs():
     parser = argparse.ArgumentParser(description='dense post treatment')
@@ -223,6 +215,7 @@ def main():
     csv_folder = os.path.join(args.output, 'csv')
     slide_prob_nms = {}
     csv_list = glob.glob(os.path.join(csv_folder, '*.csv'))
+    slide_result={}
     for csv_path in csv_list:
         f = open(csv_path, 'r')
         lines = f.readlines()
@@ -236,13 +229,18 @@ def main():
     slide_list = glob.glob(os.path.join(args.slide_folder, '*.tif'))
     #     pdb.set_trace()
     slide_gt_dict = {}
+
     for slide_name in slide_list:
         slide_basename = os.path.basename(slide_name)
         slide_gt_dict[slide_basename] = 0
         prefix = slide_basename.split('.')[0]
         if len(glob.glob('%s%s*' % (args.slide_annotation_folder, prefix))):
             slide_gt_dict[slide_basename] = 1
+        slide_result[slide_basename]=(slide_prob_nms[slide_basename],slide_gt_dict[slide_basename])
     TP, FP, TN, FN, TPR, FPR, Precision, Recall, AUC = statistics(slide_gt_dict, slide_prob_nms)
+    result_path=os.path.join(args.output,'result.json')
+    with open(result_path, 'w') as f:
+        json.dump(slide_result, f,indent=4)
     logging.info(AUC)
     save_dir = os.path.join(args.output, 'figures')
     os.system(f'mkdir -p {save_dir}')
