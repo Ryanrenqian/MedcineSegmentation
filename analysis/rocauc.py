@@ -223,7 +223,7 @@ def main():
         tif_name = os.path.basename(csv_path).split('.')[0] + '.tif'
         prob_max = 0
         for line in lines:
-            prob, x, y = lines[0].split(',')
+            prob, x, y = line.split(',')
             prob_max = max(prob_max, float(prob))
         slide_prob_nms[tif_name] = float(prob_max)
     slide_list = glob.glob(os.path.join(args.slide_folder, '*.tif'))
