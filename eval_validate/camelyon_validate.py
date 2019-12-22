@@ -36,7 +36,7 @@ class Validate(basic_validate.BasicValidate):
 
     def cfg(self, name):
         """获取配置简易方式"""
-        return self.config[name]
+        return self.config.get_config('hard', validate)
 
     def load_data(self):
         validate_transform = transforms.Compose([image_transform.RandomScale(shorter_side_range=(224, 224)),

@@ -44,7 +44,7 @@ class Hard(BasicHard):
 
     def cfg(self, name):
         """获取配置简易方式"""
-        return self.config.get_config('test', name)
+        return self.config.get_config('hard', name)
 
     def checkpoint(self, model, epoch):
         save_folder = os.path.join(self.config.get_config('base','save_folder'),'train','models')
