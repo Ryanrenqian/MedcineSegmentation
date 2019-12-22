@@ -139,6 +139,8 @@ class Hard(BasicHard):
         self.init_optimizer(model)
         criterion = nn.CrossEntropyLoss()
         losses = counter.Counter()
+        time_counter = counter.Counter()
+        time_counter.addval(time.time(), key='test epoch start')
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
@@ -158,6 +160,7 @@ class Hard(BasicHard):
                 #             pdb.set_trace()
                 output = F.softmax(output)[:, 1].detach()
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output, labels,0.5)
+                acc_batch = acc_batch_total
                 acc['avg_counter_total'].addval(acc_batch_total)
                 acc['avg_counter_pos'].addval(acc_batch_pos)
                 acc['avg_counter_neg'].addval(acc_batch_neg)
