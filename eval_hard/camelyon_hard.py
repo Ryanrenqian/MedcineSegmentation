@@ -90,7 +90,7 @@ class Hard(BasicHard):
                                                                   gamma=_params['lr_decay_factor'], last_epoch=-1)
 
     def valid(self, _model, epoch):
-        return self.hard.validate(_model, epoch)
+        return self.valid.run(_model, epoch)
 
 
     def hard(self, model,save_helper,epoch):

@@ -32,7 +32,7 @@ class Validate(basic_validate.BasicValidate):
         super(Validate, self).__init__()
         self.config = config
         self.workspace=workspace
-        self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
+        self.log = logs.Log(os.path.join(self.workspace, "validate.txt"))
 
 
     def cfg(self, name):
@@ -59,7 +59,7 @@ class Validate(basic_validate.BasicValidate):
         return torch.utils.data.DataLoader(validate_dataset, batch_size=self.cfg('batch_size'),
                                            shuffle=False, num_workers=self.cfg('num_workers'))
 
-    def validate(self, _model, epoch):
+    def run(self, _model, epoch):
         """单个epoch的validate
         :return 本次epoch中的p_k，其他不返回
         """
