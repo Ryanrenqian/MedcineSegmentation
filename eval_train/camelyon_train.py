@@ -1,4 +1,5 @@
 from ..dataset import DynamicDataset,EvalDataset,ValidDataset
+from ..eval_validate.camelyon_validate import Validate
 import torchvision.models as models
 import torchvision.transforms as transforms
 # 血液细胞评测
@@ -39,6 +40,7 @@ class Train(basic_train.BasicTrain):
         writer_path = os.path.join(self.workspace,'visualize')
         os.system(f'mkdir -p {writer_path}')
         self.writer = SummaryWriter(writer_path)
+        self.hard =  Validate(self.config, self.workspace)
         # self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
     def cfg(self, name):
@@ -78,13 +80,16 @@ class Train(basic_train.BasicTrain):
                                                sampler=sampler, num_workers=self.cfg('num_workers'))
 
 
-
     def init_optimizer(self, _model):
         _params = self.cfg('params')
         self.optimizer = optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
         self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
                                                             gamma=_params['lr_decay_factor'], last_epoch=-1)
+
+    def valid(self,_model,epoch):
+        return self.hard.validate(_model,epoch)
+
 
     def train(self, _model, save_helper,config,validation):
         """单个epoch的train 参数在epoch中是原子操作
@@ -149,10 +154,13 @@ class Train(basic_train.BasicTrain):
             self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'])
 #             self.optimizer_schedule.step()
             # 增加validation部分
-            # if epoch%5==0:
-            #     best_epoch=self.valid(_model,epoch)
+            if epoch%5==0:
+                result=self.valid(_model,epoch)
+                self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
+                self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
+                self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
+                self.writer.add_scalar('loss in valid', result[3], epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
-
             save_helper.save_epoch_model(self.workspace,epoch, 'train', acc, losses, _model, iteration)
             time_counter.addval(time.time(), key='training epoch end')
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',

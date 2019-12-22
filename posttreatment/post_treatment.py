@@ -110,7 +110,6 @@ def getargs():
     parser.add_argument('-i', '--input', type=str,help="fpm folder")
     parser.add_argument('-d','--dense',default=1,type=int,help="dense or alpha 1,2")
     parser.add_argument('-c','--connectivity',default=2,type=int,help="connectivity in open operation")
-
     return parser.parse_args()
 
 if __name__ == '__main__':

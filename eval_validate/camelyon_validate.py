@@ -26,14 +26,12 @@ class Validate(basic_validate.BasicValidate):
     """包含每一轮validate，BreastPathQ数据集的validation数据集只有185张图，返回p_k即可
     """
 
-    def __init__(self, config, save_helper):
+    def __init__(self, config, workspace):
         """这里只解析和训练相关的参数，不对模型进行加载"""
         super(Validate, self).__init__()
         self.config = config
-        self.save_helper = save_helper
-        self.log = logs.Log(os.path.join(save_helper.save_folder, "log.txt"))
-        # dataloader
-        # validate params
+        self.workspace=workspace
+        self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
         self.is_cuda = self.cfg('platform') == 'ubuntu'
 
     def cfg(self, name):
@@ -58,7 +56,7 @@ class Validate(basic_validate.BasicValidate):
         # iter_data = iter(validate_dataset)
         # _input, _labels, path_list = next(iter_data)
         return torch.utils.data.DataLoader(validate_dataset, batch_size=self.cfg('batch_size'),
-                                           shuffle=True, num_workers=self.cfg('num_workers'))
+                                           shuffle=False, num_workers=self.cfg('num_workers'))
 
     def validate(self, _model, epoch):
         """单个epoch的validate
@@ -66,10 +64,14 @@ class Validate(basic_validate.BasicValidate):
         """
         #         pdb.set_trace()
         _model.eval()
+        criterion = nn.CrossEntropyLoss()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='validate epoch start')
         truth_labels = []
         pred_labels = []
+        acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
+               'avg_counter_neg': counter.Counter()}
+        losses = counter.Counter()
         for i, data in enumerate(self.load_data(), 0):
             _input, _labels, path_list = data
             # forward and step
@@ -78,26 +80,15 @@ class Validate(basic_validate.BasicValidate):
             else:
                 _input = Variable(_input.type(torch.FloatTensor))
             _output = _model(_input)
+            _output = F.softmax(_output)[:, 1].detach()
             _output = _output.cpu()
-
-            # 统计每一轮的信息
-            acc_image_list = accuracy.topk_with_class(_output.cpu(), _labels, path_list, topk=1)
+            loss = criterion(_output, _labels)
+            acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(_output, _labels, 0.5)
+            acc_batch = acc_batch_total
+            acc['avg_counter_total'].addval(acc_batch_total)
+            acc['avg_counter_pos'].addval(acc_batch_pos)
+            acc['avg_counter_neg'].addval(acc_batch_neg)
+            losses.addval(loss.item(), len(_output))
             time_counter.addval(time.time())
 
-            """统计均值"""
-            for index in range(len(acc_image_list)):
-                truth_labels.append(float(_labels[index]))
-                pred_labels.append(float(acc_image_list[index]['pred'][0]))
-
-        time_counter.addval(time.time(), key='validate epoch end')
-        p_k = eval_method.predprob(truth_labels, pred_labels)
-        if max(pred_labels) == min(pred_labels):
-            p_k = 0
-            self.log.info('p_k error')
-            self.log.info(pred_labels)
-            self.log.info(p_k)
-
-        self.log.info('\nvalidate epoch:%d, time consume:%.2f s, p_k:%.2f ' %
-                      (epoch, time_counter.key_interval(key_ed='validate epoch end', key_st='validate epoch start'),
-                       p_k))
-        return p_k
+        return acc['avg_counter_total'].avg,acc['avg_counter_pos'].avg,acc['avg_counter_neg'].avg,losses.avg
