@@ -89,7 +89,7 @@ class Hard(BasicHard):
         self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
                                                                   gamma=_params['lr_decay_factor'], last_epoch=-1)
 
-    def valid(self, _model, epoch):
+    def validation(self, _model, epoch):
         return self.valid.run(_model, epoch)
 
 
@@ -173,7 +173,7 @@ class Hard(BasicHard):
             self.writer.add_scalar('acc_batch_neg in train', acc['avg_counter_neg'].avg, epoch)
             self.writer.add_scalar('loss in train', losses.avg, epoch)
             # Validation
-            result = self.valid(model, epoch)
+            result = self.validation(model, epoch)
             self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
             self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
             self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
