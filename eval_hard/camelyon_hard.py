@@ -106,7 +106,7 @@ class Hard(BasicHard):
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
         records = []
-        self.log.info(f'resume checkpoint {epoch} /n')
+        self.log.info(f'resume checkpoint {epoch}')
         for i, data in enumerate(self.load_normal_data(), 0):
             input_imgs, class_ids, patch_names=data
             output = model(input_imgs)
@@ -117,7 +117,7 @@ class Hard(BasicHard):
             acc_batch = acc_batch_total
             for i,patch_name in zip(output,patch_names):
                 if i>0.5:
-                    records.append(patch_names+'\n')
+                    records.append(patch_name+'\n')
         # Save HardExamples file
         hard_examples=save_helper.save_hard_example(self.hardlist,records)
         time_counter.addval(time.time(), key='End seeking hard exmample')
