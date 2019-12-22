@@ -83,9 +83,9 @@ class Validate(basic_validate.BasicValidate):
             else:
                 _input = Variable(_input.type(torch.FloatTensor))
             _output = _model(_input)
+            loss = criterion(_output, _labels)
             _output = F.softmax(_output)[:, 1].detach()
             _output = _output.cpu()
-            loss = criterion(_output, _labels)
             acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(_output, _labels, 0.5)
             acc_batch = acc_batch_total
             acc['avg_counter_total'].addval(acc_batch_total)
