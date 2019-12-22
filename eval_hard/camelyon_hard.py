@@ -39,7 +39,7 @@ class Hard(BasicHard):
         self.best_epoch = 0
         self.best_acc = 0
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
-        self.hard =  Validate(self.config, self.workspace)
+        self.valid =  Validate(self.config, self.workspace)
 
 
     def cfg(self, name):
