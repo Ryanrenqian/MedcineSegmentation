@@ -29,7 +29,8 @@ def eval_main():
     config = config_base.ConfigBase(args.config)
     # auto update config
     base_dir = config.config['base']['save_folder']
-    if not (config.get_config('train', 'resume', 'run_this_module') or config.get_config('test', 'run_this_module')):
+    if not (config.get_config('train', 'resume', 'run_this_module') or config.get_config('test', 'run_this_module') or
+        config.get_config('hard', 'run_this_module')):
         iteration = 0
         while (os.path.exists(f'{base_dir}_{iteration}')):
             iteration += 1
@@ -50,8 +51,6 @@ def eval_main():
     # eval
     time_counter.addval(time.time(), key='model load')
     validation= config.get_config("test", 'run_this_module')
-
-
     if config.get_config("train", 'run_this_module') == True:
         epoch=train.train(model,  save_helper,config,validation)
     # tain with hard_minning

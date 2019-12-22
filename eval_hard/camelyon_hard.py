@@ -6,7 +6,7 @@ from  torch.nn import functional as F
 from torch.autograd import Variable
 import time
 import torch.nn.functional as F
-
+import torch.optim as optim
 from ..eval_hard import BasicHard
 from ..utils import image_transform
 from ..dataset import camelyon_data
@@ -79,7 +79,10 @@ class Hard(BasicHard):
         os.system(f'mkdir -p {writer_path}')
         return  SummaryWriter(writer_path)
 
-
+    def init_optimizer(self, _model):
+        _params = self.cfg('params')
+        self.optimizer = optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
+                                         weight_decay=_params['weight_decay'])
 
 
     def hard(self, model,save_helper,epoch):
