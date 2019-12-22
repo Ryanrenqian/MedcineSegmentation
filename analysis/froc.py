@@ -139,8 +139,8 @@ def computeITC(mask, resolution, level):
             Isolated_Tumor_Cells.append(i + 1)
     return Isolated_Tumor_Cells
 
-def compute_FP_TP_Probs(Ycorr, Xcorr, Probs, is_tumor, mask, coord, ITC_labels):
-    max_label = len(mask['positive'])
+def compute_FP_TP_Probs(Ycorr, Xcorr, Probs, is_tumor, coord, ITC_labels):
+    max_label = len(coord['positive'])
     FP_counter = 0
     is_tumor = 1
     max_label = len(coord['positive'])
