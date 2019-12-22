@@ -60,7 +60,7 @@ class Hard(BasicHard):
                                 patch_size=self.config.get_config('base', 'patch_size'))
         # 这里为了减少openslide的内存消耗，采用shuffle=False的方式，按顺序取数据
         return torch.utils.data.DataLoader(dataset, batch_size=self.cfg('batch_size'),
-                                           shuffle=False, num_workers=self.cfg('num_workers'))
+                                           shuffle=True, num_workers=self.cfg('num_workers'))
 
     def load_hard_data(self):
         _size = self.config.get_config('base', 'crop_size')
@@ -99,28 +99,33 @@ class Hard(BasicHard):
 
         '''
         model = self.checkpoint(model, epoch)
-        model.eval()
-        time_counter = counter.Counter()
-        time_counter.addval(time.time(), key='test epoch start')
-        acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
-               'avg_counter_neg': counter.Counter(),
-               'avg_counter': counter.Counter(), 'epoch_acc_image': []}
-        records = []
-        self.log.info(f'resume checkpoint {epoch}')
-        for i, data in enumerate(self.load_normal_data(), 0):
-            input_imgs, class_ids, patch_names=data
-            output = model(input_imgs)
-            output = output.cpu()
-            class_ids = Variable(class_ids.type(torch.FloatTensor))
-            output = F.softmax(output)[:, 1]
-            acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
-            acc_batch = acc_batch_total
-            for i,patch_name in zip(output,patch_names):
-                if i>0.5:
-                    records.append(patch_name+'\n')
+        if self.config.get_config('hard','extract_hardsample'):
+            model.eval()
+            time_counter = counter.Counter()
+            time_counter.addval(time.time(), key='test epoch start')
+            acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
+                   'avg_counter_neg': counter.Counter(),
+                   'avg_counter': counter.Counter(), 'epoch_acc_image': []}
+            records = []
+            self.log.info(f'resume checkpoint {epoch}')
+            iteration = 0
+            for i, data in enumerate(self.load_normal_data(), 0):
+                input_imgs, class_ids, patch_names=data
+                output = model(input_imgs)
+                output = output.cpu()
+                class_ids = Variable(class_ids.type(torch.FloatTensor))
+                output = F.softmax(output)[:, 1]
+                acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
+                acc_batch = acc_batch_total
+                for i,patch_name in zip(output,patch_names):
+                    if i>0.5:
+                        records.append(patch_name+'\n')
+                if iteration> 400000:
+                    break
+            hard_examples = save_helper.save_hard_example(self.hardlist, records)
+            time_counter.addval(time.time(), key='End seeking hard exmample')
         # Save HardExamples file
-        hard_examples=save_helper.save_hard_example(self.hardlist,records)
-        time_counter.addval(time.time(), key='End seeking hard exmample')
+
         # Fine tune models
         model.train()
         criterion = nn.CrossEntropyLoss()
