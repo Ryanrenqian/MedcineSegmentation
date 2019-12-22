@@ -13,7 +13,7 @@ import time
 import glob,os
 from  skimage.color import rgb2hsv
 from  skimage.filters import threshold_otsu
-import argparse
+import argparse,logging
 from tqdm import tqdm
 
 class PostScan():
@@ -159,7 +159,11 @@ def getargs():
 
 def main():
     args=getargs()
-    print(args)
+    logfile=os.path.join(args.save,'log.txt')
+    logging.basicConfig(level=logging.INFO, filename=logfile,
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.info(args)
+    logging.info(args)
     slide_folder = args.slide_folder
     resize = args.resize
     test_slide_ostu = os.path.join(args.otsu,'test_resize_%d'%resize)
@@ -174,7 +178,7 @@ def main():
     model.load_state_dict(torch.load(pth)['model_state'])
     slide_list = glob.glob(os.path.join(slide_folder, '*.tif'))
     slide_list.sort()
-    print('total slide : %d' % len(slide_list))
+    logging.info('total slide : %d' % len(slide_list))
     with open(os.path.join(save_npy, 'log.txt'), 'w')as f:
         f.write(pth + '\n' + save_npy)
         f.write(str(args))
@@ -184,17 +188,17 @@ def main():
     for parent, dirnames, filenames in os.walk(save_npy):
         for filename in filenames:
             saved.append(filename.rstrip('_fpm.npy'))
-    print('saved:', saved)
+    logging.info('saved:', saved)
     for slide_path in slide_list:
         filename = os.path.basename(slide_path).rstrip('.tif')
         st = time.time()
         if filename in saved:
-            print(f'pass {filename}')
+            logging.info(f'pass {filename}')
             continue
         otsu = np.load(os.path.join(test_slide_ostu, filename + '_resize_%d.npy' % resize))
-        print(f"handle {filename}: {np.sum(otsu)} ostu forward")
+        logging.info(f"handle {filename}: {np.sum(otsu)} ostu forward")
         post.densereconstruction(slide_path, otsu, resize, max_k=args.k, threshold=args.thres)
         ed = time.time()
-        print(f'time: {ed - st} in {filename}')
+        logging.info(f'time: {ed - st} in {filename}')
 if __name__ == "__main__":
     main()
