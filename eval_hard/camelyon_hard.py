@@ -109,11 +109,11 @@ class Hard(BasicHard):
         model = self.checkpoint(model, epoch)
         if self.config.get_config('hard','extract_hardsample'):
             model.eval()
-            time_counter = counter.Counter()
-            time_counter.addval(time.time(), key='test epoch start')
-            acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
-                   'avg_counter_neg': counter.Counter(),
-                   'avg_counter': counter.Counter(), 'epoch_acc_image': []}
+            # time_counter = counter.Counter()
+            # time_counter.addval(time.time(), key='test epoch start')
+            # acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
+            #        'avg_counter_neg': counter.Counter(),
+            #        'avg_counter': counter.Counter(), 'epoch_acc_image': []}
             records = []
             self.log.info(f'resume checkpoint {epoch}')
             samples = 0
@@ -132,13 +132,16 @@ class Hard(BasicHard):
                 if samples> 200000:
                     break
             hard_examples = save_helper.save_hard_example(self.hardlist, records)
-            time_counter.addval(time.time(), key='End seeking hard exmample')
+            # time_counter.addval(time.time(), key='End seeking hard exmample')
         # Save HardExamples file
         # Fine tune models
         model.train()
         self.init_optimizer(model)
         criterion = nn.CrossEntropyLoss()
         losses = counter.Counter()
+        acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
+               'avg_counter_neg': counter.Counter(),
+               'avg_counter': counter.Counter(), 'epoch_acc_image': []}
         for epoch in range(self.config.get_config('hard','epoch')):
             for i,data in enumerate(self.load_hard_data(), 0):
                 input, labels, path_list = data
