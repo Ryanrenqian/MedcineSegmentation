@@ -200,7 +200,7 @@ def main():
     ground_truth_test = set(ground_truth_test)
     caseNum = 0
     for case in result_file_list:
-        logging.info('Evaluating Performance on image:', case[0:-4])
+        logging.info(f'Evaluating Performance on image:{case[0:-4]}')
         sys.stdout.flush()
         csvDIR = os.path.join(result_folder, case)
         Probs, Xcorr, Ycorr = readCSVContent(csvDIR)
