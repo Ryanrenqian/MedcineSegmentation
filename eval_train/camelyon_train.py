@@ -34,21 +34,22 @@ class Train(basic_train.BasicTrain):
         super(Train, self).__init__()
         self.config = config
         save_folder = config.get_config('base','save_folder')
-        self.log = logs.Log(os.path.join(save_folder, "log.txt"))
+        self.workspace=os.path.join(save_folder,'train')
+        self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
         self.train_loader = self.load_data()
-        writer_path = os.path.join(config.get_config('base','save_folder'),'visualize')
+        writer_path = os.path.join(self.workspace,'visualize')
         os.system(f'mkdir -p {writer_path}')
         self.writer = SummaryWriter(writer_path)
-        self.after_model_output = getattr(camelyon_models, 'after_model_output')
+        # self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
     def cfg(self, name):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
     def checkpoint(self,  model,save_helper):
-        save_folder = os.path.join(save_helper.save_folder,'models')
+        save_folder = os.path.join(self.workspace,'models')
         epoch = self.config.get_config('train', 'resume' ,'start_epoch')
-        checkpoint = os.path.join(save_folder,f'epoch_{epoch}_type_train_model.pth')
+        checkpoint = os.path.join(save_folder,f'epoch_{epoch}_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
         model.load_state_dict(epoch_checkpoint['model_state'])
         iteration = epoch_checkpoint.get('iteration',0)
@@ -152,10 +153,9 @@ class Train(basic_train.BasicTrain):
             # if validation:
             #     best_epoch=self.valid(_model,epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
-            save_helper.save_epoch_pred(acc['epoch_acc_image'],f'train_epoch_{epoch}.txt','train')
-            save_helper.save_epoch_model(epoch, 'train', acc, losses, _model, iteration)
+            save_helper.save_epoch_model(self.workspace,epoch, 'train', acc, losses, _model, iteration)
             time_counter.addval(time.time(), key='training epoch end')
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
                                                                                             key_st='training epoch start'))))
-#         return acc, losses
+        return epoch # 返回epoch用于后续分析
 

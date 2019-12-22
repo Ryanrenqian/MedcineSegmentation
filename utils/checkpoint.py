@@ -32,10 +32,9 @@ class CheckPoint(object):
                                    self.config.get_config('base', 'resume_only_model'))
         config.update_config()
 
-    def save_epoch_pred(self, epoch_image_results, txt_name, type):
-        pre_save=os.path.join(self.config.get_config('base', 'save_folder'), type)
-        file.check_mkdir(pre_save)
-        save_name = os.path.join(pre_save, txt_name)
+    def save_epoch_pred(self, workspace,epoch_image_results, txt_name):
+        file.check_mkdir(workspace)
+        save_name = os.path.join(workspace, txt_name)
         print('\nsave file to %s' % save_name)
         f = open(save_name, 'w')
         f.writelines(json.dumps(epoch_image_results, indent=4))
@@ -43,14 +42,10 @@ class CheckPoint(object):
 
 # 这里用来保存hard example
     def save_hard_example(self,filename,records):
-        save_path = os.path.join(self.config.get_config('base', 'save_folder'),'hard')
-        file.check_mkdir(save_path)
-        save = os.path.join(save_path,filename)
-        with open(os.path.join(save_path,filename),'w')as f:
+        with open(filename,'w')as f:
             f.writelines(records)
-        return save
 
-    def save_epoch_model(self,  epoch, run_type, acc, losses, model, iteration):
+    def save_epoch_model(self, workspace,epoch, run_type, acc, losses, model, iteration):
         """
         保存单轮的运行结果，但不保存模型，模型只保留best和最后一个
         :param epoch:
@@ -59,7 +54,7 @@ class CheckPoint(object):
         :param losses:
         :return:
         """
-        save_path = os.path.join(self.save_folder,'models')
+        save_path = os.path.join(workspace,'models')
         os.system(f'mkdir -p {save_path}')
         save_name = os.path.join(save_path,f'epoch_{epoch}_type_{run_type}_acc_losses.pth')
         # 保存中间结果

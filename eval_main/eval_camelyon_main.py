@@ -53,10 +53,11 @@ def eval_main():
 
 
     if config.get_config("train", 'run_this_module') == True:
-        train.train(model,  save_helper,config,validation)
+        epoch=train.train(model,  save_helper,config,validation)
     # tain with hard_minning
-    elif config.get_config('test','run_this_module') ==True:
-        test.test(model, 0,  save_helper)
+    if config.get_config('hard','resume','run_this_module'):
+        epoch = config.get_config('hard','resume','resume_checkpoint')
+    hard.hard(model,save_helper,epoch)
 
 
 

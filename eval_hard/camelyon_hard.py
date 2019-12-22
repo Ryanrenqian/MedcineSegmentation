@@ -17,7 +17,10 @@ from ..model import camelyon_models
 from ..dataset import DynamicDataset, EvalDataset, ListDataset
 import pdb
 import json
-
+try:
+    from tensorboardX import SummaryWriter
+except ImportError:
+    from torch.utils.tensorboard import SummaryWriter
 
 class Hard(BasicHard):
     """Hard Minning, 提取难样本用于finetune
@@ -26,22 +29,23 @@ class Hard(BasicHard):
     def __init__(self, config):
         super(Hard, self).__init__()
         self.config = config
-        save_folder = os.path.join(self.config.get_config('base', 'save_folder'),
-                                   self.config.get_config('base', 'last_run_date'))
-        self.log = logs.Log(os.path.join(save_folder, "log.txt"))
+        save_folder = os.path.join(self.config.get_config('base', 'save_folder'))
+        self.workspace=os.path.join(save_folder,'hard')
+        self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
+        self.hardlist = os.path.join(self.workspace, 'hardexample.list')
         # test params
         self.best_epoch = 0
         self.best_acc = 0
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
+
     def cfg(self, name):
         """获取配置简易方式"""
         return self.config.get_config('test', name)
 
-    def checkpoint(self, model, save_helper):
-        save_folder = os.path.join(save_helper.save_folder, 'models')
-        epoch = self.config.get_config('test', 'epoch')
-        checkpoint = os.path.join(save_folder, f'epoch_{epoch}_type_train_model.pth')
+    def checkpoint(self, model, epoch):
+        save_folder = os.path.join(self.config.get_config('base','save_folder'),'train','models')
+        checkpoint = os.path.join(save_folder, f'epoch_{epoch}_train_model.pth')
         epoch_checkpoint = torch.load(checkpoint)
         model.load_state_dict(epoch_checkpoint['model_state'])
         return model
@@ -69,8 +73,16 @@ class Hard(BasicHard):
         # 这里为了减少openslide的内存消耗，采用shuffle=False的方式，按顺序取数据
         return torch.utils.data.DataLoader(dataset, batch_size=self.cfg('batch_size'),
                                            shuffle=False, num_workers=self.cfg('num_workers'))
+    @property
+    def writer(self):
+        writer_path=os.path.join(self.workspace,'visualze')
+        os.system(f'mkdir -p {writer_path}')
+        return  SummaryWriter(writer_path)
 
-    def hard(self, model,save_helper):
+
+
+
+    def hard(self, model,save_helper,epoch):
         '''
         动态的加载模型用于训练
         Parameters
@@ -91,6 +103,7 @@ class Hard(BasicHard):
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
         records = []
+        self.log.info(f'resume checkpoint {epoch}/n')
         for i, data in enumerate(self.load_normal_data(), 0):
             input_imgs, class_ids, patch_names=data
             output = model(input_imgs)
@@ -99,17 +112,11 @@ class Hard(BasicHard):
             output = F.softmax(output)[:, 1]
             acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
             acc_batch = acc_batch_total
-            acc['avg_counter_total'].addval(acc_batch_total)
-            acc['avg_counter_pos'].addval(acc_batch_pos)
-            acc['avg_counter_neg'].addval(acc_batch_neg)
-            acc['avg_counter'].addval(acc_batch)
-            time_counter.addval(time.time())
-            self.log.info(f"acc-iter/avg:[{acc_batch:.2f}/{acc['avg_counter'].avg:.2f}]-[{acc['avg_counter_total'].avg:.2f}--{acc['avg_counter_pos'].avg:.2f}--{acc['avg_counter_neg'].avg:.2f}], time consume:{time_counter.interval():.2f} s\r" )
             for i,patch_name in zip(output,patch_names):
                 if i>0.5:
                     records.append(patch_names+'\n')
         # Save HardExamples file
-        hardexamples=save_helper.save_hard_example('hardexample.list',records)
+        hard_examples=save_helper.save_hard_example(self.hardlist,records)
         time_counter.addval(time.time(), key='End seeking hard exmample')
         # Fine tune models
         model.train()
@@ -131,7 +138,18 @@ class Hard(BasicHard):
                 #             pdb.set_trace()
                 output = F.softmax(output)[:, 1].detach()
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output, labels,0.5)
-            save_helper.save_epoch_model( epoch, "hard", acc, losses, model, None)
+                acc['avg_counter_total'].addval(acc_batch_total)
+                acc['avg_counter_pos'].addval(acc_batch_pos)
+                acc['avg_counter_neg'].addval(acc_batch_neg)
+                acc['avg_counter'].addval(acc_batch)
+                time_counter.addval(time.time())
+                self.log.info(
+                    f"acc-iter/avg:[{acc_batch:.2f}/{acc['avg_counter'].avg:.2f}]-[{acc['avg_counter_total'].avg:.2f}--{acc['avg_counter_pos'].avg:.2f}--{acc['avg_counter_neg'].avg:.2f}], time consume:{time_counter.interval():.2f} s\r")
+            self.writer.add_scalar('acc_batch_total in train', acc['avg_counter_total'].avg, epoch)
+            self.writer.add_scalar('acc_batch_pos in train', acc['avg_counter_pos'].avg, epoch)
+            self.writer.add_scalar('acc_batch_neg in train', acc['avg_counter_neg'].avg, epoch)
+            self.writer.add_scalar('loss in train', losses.avg, epoch)
+            save_helper.save_epoch_model(self.workspace,epoch, "hard", acc, losses, model, None)
 
 
 
