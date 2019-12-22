@@ -109,7 +109,7 @@ class Hard(BasicHard):
                    'avg_counter': counter.Counter(), 'epoch_acc_image': []}
             records = []
             self.log.info(f'resume checkpoint {epoch}')
-            iteration = 0
+            samples = 0
             for i, data in enumerate(self.load_normal_data(), 0):
                 input_imgs, class_ids, patch_names=data
                 output = model(input_imgs)
@@ -118,11 +118,11 @@ class Hard(BasicHard):
                 output = F.softmax(output)[:, 1]
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
                 acc_batch = acc_batch_total
-                iteration+=self.cfg('batch_size')
+                samples+=self.cfg('batch_size')
                 for i,patch_name in zip(output,patch_names):
                     if i>0.5:
                         records.append(patch_name+'\n')
-                if iteration> 200000:
+                if samples> 200000:
                     break
             hard_examples = save_helper.save_hard_example(self.hardlist, records)
             time_counter.addval(time.time(), key='End seeking hard exmample')
