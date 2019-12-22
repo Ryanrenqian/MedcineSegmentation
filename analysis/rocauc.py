@@ -190,7 +190,7 @@ def generate_csv_by_nms(probs_map, prob_thred, csv_path, radius=12):
 
 
 def getargs():
-    parser = argparse.ArgumentParser(description='dense post treatment')
+    parser = argparse.ArgumentParser(description='cacluate roc and auc')
     parser.add_argument('-sf', '--slide_folder', type=str, default='/root/workspace/dataset/CAMELYON16/testing/images/',
                         metavar='DIR', help='slide_folder')
     parser.add_argument('-saf', '--slide_annotation_folder', type=str,
@@ -198,7 +198,7 @@ def getargs():
                         help='slide_annotation_folder')
     parser.add_argument('-mf', '--mask_folder', type=str,
                         default='/root/workspace/huangxs/prepare_data/16/wsi_mask/test_64/', help='mask_folder')
-    parser.add_argument('-t', '--thred', default=0.5, type=float, help='mask_folder')
+    parser.add_argument('-t', '--thred', default=0.5, type=float, help='threshhold')
     parser.add_argument('-o', '--output',  type=str,help='output')
     parser.add_argument('-i', '--input', type=str,help="csv folder")
     return parser.parse_args()
