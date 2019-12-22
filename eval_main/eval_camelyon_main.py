@@ -66,8 +66,8 @@ def get_instance(_config, _model):
     if _config.get_config("train", 'run_this_module') == True:
         train = reflect.get_instance(_config, 'train')
         train.init_optimizer(_model)
-    if _config.get_config("validate", 'run_this_module') == True:
-        validate = reflect.get_instance(_config, 'validate')
+    # if _config.get_config("validate", 'run_this_module') == True:
+    #     validate = reflect.get_instance(_config, 'validate')
     if _config.get_config("test", 'run_this_module') == True:
         test = reflect.get_instance(_config, 'test')
     if _config.get_config("hard", 'run_this_module') == True:
