@@ -86,6 +86,8 @@ class Hard(BasicHard):
         _params = self.cfg('params')
         self.optimizer = optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
+        self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
+                                                                  gamma=_params['lr_decay_factor'], last_epoch=-1)
 
     def valid(self, _model, epoch):
         return self.hard.validate(_model, epoch)
@@ -134,6 +136,7 @@ class Hard(BasicHard):
         # Save HardExamples file
         # Fine tune models
         model.train()
+        self.init_optimizer(model)
         criterion = nn.CrossEntropyLoss()
         losses = counter.Counter()
         for epoch in range(self.config.get_config('hard','epoch')):
