@@ -67,11 +67,11 @@ class Hard(BasicHard):
 
     def load_hard_data(self):
         _size = self.config.get_config('base', 'crop_size')
-        test_transform = image_transform.get_test_transforms(shorter_side_range=(_size, _size), size=(_size, _size))
+        transform = image_transform.get_test_transforms(shorter_side_range=(_size, _size), size=(_size, _size))
         dataset = ListDataset(self.hardlist,
-                                transform=test_transform,
+                                transform=transform,
                                 all_class=0,
-                                tif_folder=self.config.get_config('base', self.config.get_config('base','train_tif_folder')),
+                                tif_folder=self.config.get_config('base','train_tif_folder'),
                                 patch_size=self.config.get_config('base', 'patch_size'))
         # 这里为了减少openslide的内存消耗，采用shuffle=False的方式，按顺序取数据
         return torch.utils.data.DataLoader(dataset, batch_size=self.cfg('batch_size'),
