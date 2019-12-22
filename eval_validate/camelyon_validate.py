@@ -48,8 +48,8 @@ class Validate(basic_validate.BasicValidate):
                                                  transforms.Normalize((0.783, 0.636, 0.74), (0.168, 0.187, 0.144))])
 
 
-        validate_dataset = ValidDataset(self.config.get_config('valid', 'tumor_list'),
-                                   self.config.get_config('valid', 'normal_list'),
+        validate_dataset = ValidDataset(self.config.get_config('validate', 'tumor_list'),
+                                   self.config.get_config('validate', 'normal_list'),
                                    transform=validate_transform,
                                    tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                    patch_size=self.config.get_config('base', 'patch_size'))

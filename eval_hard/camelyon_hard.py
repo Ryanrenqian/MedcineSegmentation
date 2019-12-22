@@ -78,7 +78,7 @@ class Hard(BasicHard):
                                            shuffle=True, num_workers=self.cfg('num_workers'))
     @property
     def writer(self):
-        writer_path=os.path.join(self.workspace,'visualze')
+        writer_path=os.path.join(self.workspace,'visualize')
         os.system(f'mkdir -p {writer_path}')
         return  SummaryWriter(writer_path)
 
