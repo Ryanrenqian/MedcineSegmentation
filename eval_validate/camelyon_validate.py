@@ -5,6 +5,7 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 # 血液细胞评测
 from basic.eval_validate import basic_validate
+import torch.nn.functional as F
 from basic import model
 import random
 import torch
@@ -32,11 +33,11 @@ class Validate(basic_validate.BasicValidate):
         self.config = config
         self.workspace=workspace
         self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
-        self.is_cuda = self.cfg('platform') == 'ubuntu'
+
 
     def cfg(self, name):
         """获取配置简易方式"""
-        return self.config.get_config('hard', validate)
+        return self.config.get_config('validate', name)
 
     def load_data(self):
         validate_transform = transforms.Compose([image_transform.RandomScale(shorter_side_range=(224, 224)),
