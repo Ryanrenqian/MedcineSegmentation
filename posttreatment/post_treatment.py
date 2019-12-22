@@ -11,7 +11,7 @@ import threading
 import multiprocessing
 import time, logging
 import logging
-
+import argparse
 
 class ScanNetPost():
     def __init__(self, sd=16, lf=244, connectivity=2, kernel=np.ones((10, 10)), threshhold=0.5):
@@ -102,18 +102,25 @@ def multprocess(process, fpm, save_path, share_dict, lock):
     share_dict['running_process'] -= 1
     lock.release()
 
+def getargs():
+    parser = argparse.ArgumentParser(description='dense post treatment')
+    parser.add_argument('-k','--kernel_size',default=8,type=int)
+    parser.add_argument('-p', '--pool_size', default=8, type=int)
+    parser.add_argument('-s', '--save',  type=str,help='workspace')
+    parser.add_argument('-i', '--input', type=str,help="fpm folder")
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    kernel = 8  # kernel size
-    pools = 1  # processing pool size
+    args=getargs()
+    kernel = args.kernel_size  # kernel size
+    pools = args.pool_size  # processing pool size
     # set logging
-    workspace = '/root/workspace/renqian/1115/result/exp5/posttreat'
+    workspace = args.save
     os.system(f'mkdir -p {workspace}')
     logfile = workspace + 'kernel_%d.log' % kernel
     FORMAT = '%(asctime)-15s-8s %(message)s'
     logging.basicConfig(filename=logfile, format=FORMAT, level=logging.INFO)
-
-    fpm_folder = '/root/workspace/renqian/1115/result/exp5/dense'
+    fpm_folder = args.input
     save_folder = workspace + 'kernel_%d/csv' % kernel
 
     #     processing Pool
