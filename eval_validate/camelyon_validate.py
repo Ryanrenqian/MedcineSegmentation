@@ -82,7 +82,7 @@ class Validate(basic_validate.BasicValidate):
                 _input = Variable(_input.type(torch.cuda.FloatTensor))
             else:
                 _input = Variable(_input.type(torch.FloatTensor))
-            _output = _model(_input)
+            _output = _model(_input).squeeze().cpu()
             loss = criterion(_output, _labels)
             _output = F.softmax(_output)[:, 1].detach()
             _output = _output.cpu()
