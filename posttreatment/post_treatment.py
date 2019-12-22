@@ -121,8 +121,7 @@ if __name__ == '__main__':
     FORMAT = '%(asctime)-15s-8s %(message)s'
     logging.basicConfig(filename=logfile, format=FORMAT, level=logging.INFO)
     fpm_folder = args.input
-    save_folder = workspace + 'kernel_%d/csv' % kernel
-
+    save_folder = os.path.join(workspace, 'kernel_%d/csv' % kernel)
     #     processing Pool
     p = multiprocessing.Pool(pools)  # 设置进程池大小为40
     # begin
