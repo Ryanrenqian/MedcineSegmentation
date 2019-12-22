@@ -108,6 +108,9 @@ def getargs():
     parser.add_argument('-p', '--pool_size', default=8, type=int)
     parser.add_argument('-s', '--save',  type=str,help='workspace')
     parser.add_argument('-i', '--input', type=str,help="fpm folder")
+    parser.add_argument('-d','--dense',default=1,type=int,help="dense or alpha 1,2")
+    parser.add_argument('-c','--connectivity',default=2,type=int,help="connectivity in open operation")
+
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -127,7 +130,7 @@ if __name__ == '__main__':
     # begin
     os.system('mkdir -p %s' % save_folder)
     fpm_list = glob.glob(os.path.join(fpm_folder, '*.npy'))
-    process = ScanNetPost(kernel=morphology.square(kernel))
+    process = ScanNetPost(sd=32/args.dense,kernel=morphology.square(kernel))
     for fpm_name in fpm_list:
         sample = os.path.basename(fpm_name).rstrip('_fpm.npy')
         save_path = os.path.join(save_folder, sample)

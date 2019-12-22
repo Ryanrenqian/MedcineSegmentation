@@ -36,7 +36,6 @@ class Train(basic_train.BasicTrain):
         save_folder = config.get_config('base','save_folder')
         self.workspace=os.path.join(save_folder,'train')
         self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
-        self.train_loader = self.load_data()
         writer_path = os.path.join(self.workspace,'visualize')
         os.system(f'mkdir -p {writer_path}')
         self.writer = SummaryWriter(writer_path)
@@ -84,13 +83,12 @@ class Train(basic_train.BasicTrain):
         _params = self.cfg('params')
         self.optimizer = optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
-        # self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
-        #                                                     gamma=_params['lr_decay_factor'], last_epoch=10)
+        self.optimizer_schedule = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=_params['lr_decay_epoch'],
+                                                            gamma=_params['lr_decay_factor'], last_epoch=-1)
 
     def train(self, _model, save_helper,config,validation):
         """单个epoch的train 参数在epoch中是原子操作
         :过程保存：1.将单轮epoch中对每个样本的分类情况记录下来 2.将模型通过checkpoint保存
-        :
         :return 本次epoch中的所有样本的详细结果，平均acc，loss
         """
         criterion = nn.CrossEntropyLoss()
@@ -106,11 +104,11 @@ class Train(basic_train.BasicTrain):
             train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
             self.log.info('resume checkpoint')
             _model,iteration = self.checkpoint(_model,save_helper)
-        _model.train()
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')
         for epoch in range(train_epoch_start, train_epoch_stop):
+            _model.train()
             for i, data in enumerate(self.load_data(), 0):
                 iteration += 1
                 train_input, train_labels, path_list = data
@@ -154,6 +152,7 @@ class Train(basic_train.BasicTrain):
             # if epoch%5==0:
             #     best_epoch=self.valid(_model,epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
+
             save_helper.save_epoch_model(self.workspace,epoch, 'train', acc, losses, _model, iteration)
             time_counter.addval(time.time(), key='training epoch end')
             self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',

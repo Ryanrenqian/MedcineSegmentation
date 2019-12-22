@@ -33,7 +33,6 @@ class Validate(basic_validate.BasicValidate):
         self.save_helper = save_helper
         self.log = logs.Log(os.path.join(save_helper.save_folder, "log.txt"))
         # dataloader
-        self.validate_loader = self.load_data()
         # validate params
         self.is_cuda = self.cfg('platform') == 'ubuntu'
 
@@ -71,7 +70,7 @@ class Validate(basic_validate.BasicValidate):
         time_counter.addval(time.time(), key='validate epoch start')
         truth_labels = []
         pred_labels = []
-        for i, data in enumerate(self.validate_loader, 0):
+        for i, data in enumerate(self.load_data(), 0):
             _input, _labels, path_list = data
             # forward and step
             if self.is_cuda:
