@@ -56,7 +56,7 @@ class Hard(BasicHard):
         dataset = ListDataset(self.config.get_config('train', 'normal_list'),
                                 transform=transform,
                                 all_class=0,
-                                tif_folder=self.config.get_config('base', self.config.get_config('base', 'train_tif_folder')),
+                                tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                 patch_size=self.config.get_config('base', 'patch_size'))
         # 这里为了减少openslide的内存消耗，采用shuffle=False的方式，按顺序取数据
         return torch.utils.data.DataLoader(dataset, batch_size=self.cfg('batch_size'),
@@ -106,7 +106,7 @@ class Hard(BasicHard):
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
         records = []
-        self.log.info(f'resume checkpoint {epoch}/n')
+        self.log.info(f'resume checkpoint {epoch} /n')
         for i, data in enumerate(self.load_normal_data(), 0):
             input_imgs, class_ids, patch_names=data
             output = model(input_imgs)
