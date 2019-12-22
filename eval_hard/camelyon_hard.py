@@ -117,6 +117,7 @@ class Hard(BasicHard):
                 output = F.softmax(output)[:, 1]
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
                 acc_batch = acc_batch_total
+                iteration+=1
                 for i,patch_name in zip(output,patch_names):
                     if i>0.5:
                         records.append(patch_name+'\n')
