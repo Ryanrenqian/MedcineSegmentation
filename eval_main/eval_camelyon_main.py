@@ -51,7 +51,7 @@ def eval_main():
     # eval
     time_counter.addval(time.time(), key='model load')
     validation= config.get_config("test", 'run_this_module')
-    if config.get_config("train", 'run_this_module') == True:
+    if config.get_config("train", 'run_this_module'):
         epoch=train.train(model,  save_helper,config,validation)
     # tain with hard_minning
     if config.get_config('hard','resume','run_this_module'):

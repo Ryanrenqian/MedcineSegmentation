@@ -154,7 +154,7 @@ class Train(basic_train.BasicTrain):
             self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'])
 #             self.optimizer_schedule.step()
             # 增加validation部分
-            if epoch%5==0:
+            if epoch >29:
                 result=self.valid(_model,epoch)
                 self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
                 self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)

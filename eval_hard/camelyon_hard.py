@@ -15,6 +15,7 @@ from ..utils import counter
 from ..utils import accuracy
 from ..model import camelyon_models
 from ..dataset import DynamicDataset, EvalDataset, ListDataset
+from ..eval_validate.camelyon_validate import Validate
 import pdb
 import json
 try:
@@ -38,6 +39,7 @@ class Hard(BasicHard):
         self.best_epoch = 0
         self.best_acc = 0
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
+        self.hard =  Validate(self.config, self.workspace)
 
 
     def cfg(self, name):
@@ -61,7 +63,7 @@ class Hard(BasicHard):
                                 patch_size=self.config.get_config('base', 'patch_size'))
         # 这里为了减少openslide的内存消耗，采用shuffle=False的方式，按顺序取数据
         return torch.utils.data.DataLoader(dataset, batch_size=self.cfg('batch_size'),
-                                           shuffle=True, num_workers=self.cfg('num_workers'))
+                                           shuffle=False, num_workers=self.cfg('num_workers'))
 
     def load_hard_data(self):
         _size = self.config.get_config('base', 'crop_size')
@@ -84,6 +86,9 @@ class Hard(BasicHard):
         _params = self.cfg('params')
         self.optimizer = optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
                                          weight_decay=_params['weight_decay'])
+
+    def valid(self, _model, epoch):
+        return self.hard.validate(_model, epoch)
 
 
     def hard(self, model,save_helper,epoch):
@@ -114,7 +119,6 @@ class Hard(BasicHard):
                 input_imgs, class_ids, patch_names=data
                 output = model(input_imgs)
                 output = output.cpu()
-                class_ids = Variable(class_ids.type(torch.FloatTensor))
                 output = F.softmax(output)[:, 1]
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
                 acc_batch = acc_batch_total
@@ -122,17 +126,17 @@ class Hard(BasicHard):
                 for i,patch_name in zip(output,patch_names):
                     if i>0.5:
                         records.append(patch_name+'\n')
+                self.log.info(f'proceed: {samples/200000}, ex:{patch_name}')
                 if samples> 200000:
                     break
             hard_examples = save_helper.save_hard_example(self.hardlist, records)
             time_counter.addval(time.time(), key='End seeking hard exmample')
         # Save HardExamples file
-
         # Fine tune models
         model.train()
         criterion = nn.CrossEntropyLoss()
         losses = counter.Counter()
-        for epoch in range(self.config.get_config('hard','finetune','epoch')):
+        for epoch in range(self.config.get_config('hard','epoch')):
             for i,data in enumerate(self.load_hard_data(), 0):
                 input, labels, path_list = data
                 if torch.cuda.is_available():
@@ -159,6 +163,12 @@ class Hard(BasicHard):
             self.writer.add_scalar('acc_batch_pos in train', acc['avg_counter_pos'].avg, epoch)
             self.writer.add_scalar('acc_batch_neg in train', acc['avg_counter_neg'].avg, epoch)
             self.writer.add_scalar('loss in train', losses.avg, epoch)
+            # Validation
+            result = self.valid(model, epoch)
+            self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
+            self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
+            self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
+            self.writer.add_scalar('loss in valid', result[3], epoch)
             save_helper.save_epoch_model(self.workspace,epoch, "hard", acc, losses, model, None)
 
 
