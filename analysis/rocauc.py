@@ -214,7 +214,7 @@ def getargs():
 def main():
 
     args = getargs()
-    os.system(f'mkdir -p {args.save}')
+    os.system(f'mkdir -p {args.output}')
     logfile = os.path.join(args.output, 'log.txt')
     logging.basicConfig(level=logging.INFO, filename=logfile,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
