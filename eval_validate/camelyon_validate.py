@@ -40,17 +40,19 @@ class Validate(basic_validate.BasicValidate):
         return self.config.get_config('validate', name)
 
     def load_data(self):
-        validate_transform = transforms.Compose([image_transform.RandomScale(shorter_side_range=(224, 224)),
-                                                 transforms.RandomCrop(size=(224, 224)),
-                                                 transforms.RandomHorizontalFlip(),
-                                                 transforms.ColorJitter(0.05, 0.05, 0.05, 0.05),
-                                                 transforms.ToTensor(),
-                                                 transforms.Normalize((0.783, 0.636, 0.74), (0.168, 0.187, 0.144))])
+        _size = self.config.get_config('base', 'crop_size')
+        transform = image_transform.get_train_transforms(shorter_side_range=(_size, _size), size=(_size, _size))
+        # validate_transform = transforms.Compose([image_transform.RandomScale(shorter_side_range=(_size , _size )),
+        #                                          transforms.RandomCrop(size=(_size , _size )),
+        #                                          transforms.RandomHorizontalFlip(),
+        #                                          transforms.ColorJitter(0.05, 0.05, 0.05, 0.05),
+        #                                          transforms.ToTensor(),
+        #                                          transforms.Normalize((0.783, 0.636, 0.74), (0.168, 0.187, 0.144))])
 
 
         validate_dataset = ValidDataset(self.config.get_config('validate', 'tumor_list'),
                                    self.config.get_config('validate', 'normal_list'),
-                                   transform=validate_transform,
+                                   transform=transform,
                                    tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                    patch_size=self.config.get_config('base', 'patch_size'))
         # test dataset
