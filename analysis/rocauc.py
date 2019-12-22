@@ -207,7 +207,7 @@ def getargs():
     parser.add_argument('-mf', '--mask_folder', type=str,
                         default='/root/workspace/huangxs/prepare_data/16/wsi_mask/test_64/', help='mask_folder')
     parser.add_argument('-t', '--thred', default=0.5, type=float, help='mask_folder')
-    parser.add_argument('-s', '--save',  type=str,help='workspace')
+    parser.add_argument('-o', '--output',  type=str,help='output')
     parser.add_argument('-i', '--input', type=str,help="csv folder")
     return parser.parse_args()
 
