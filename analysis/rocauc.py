@@ -241,7 +241,7 @@ def main():
     result_path=os.path.join(args.output,'result.json')
     with open(result_path, 'w') as f:
         json.dump(slide_result, f,indent=4)
-    logging.info(AUC)
+    logging.info(f'AUC:{AUC},TP:{TP},FP:{FP},TN:{TN},FN:{FN}')
     save_dir = os.path.join(args.output, 'figures')
     os.system(f'mkdir -p {save_dir}')
     draw_auc(FPR, TPR, AUC, save_dir)
