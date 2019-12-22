@@ -53,7 +53,7 @@ def computeFROC(FROC_data):
 
     total_FPs, total_TPs = [], []
     all_probs = sorted(set(unlisted_FPs + unlisted_TPs))
-    logging.info(len(all_probs[1:]))
+    # logging.info(len(all_probs[1:]))
     for Thresh in all_probs[1:]:
         total_FPs.append((np.asarray(unlisted_FPs) >= Thresh).sum())
         total_TPs.append((np.asarray(unlisted_TPs) >= Thresh).sum())
@@ -146,7 +146,7 @@ def compute_FP_TP_Probs(Ycorr, Xcorr, Probs, is_tumor, coord, ITC_labels):
     max_label = len(coord['positive'])
     FP_probs = []
     TP_probs = np.zeros((max_label,), dtype=np.float32)
-    logging.info('ITC_labels:', ITC_labels)
+    logging.info('ITC_labels:'+str(ITC_labels))
     if (is_tumor):
         for i in range(0,len(Xcorr)):
             HittedLabel = judgeinpoly(Xcorr[i],Ycorr[i],coord)
@@ -206,7 +206,6 @@ def main():
         Probs, Xcorr, Ycorr = readCSVContent(csvDIR)
         is_tumor = case[0:-4] in ground_truth_test
         logging.info(is_tumor)
-
         if (is_tumor):
             maskDIR = os.path.join(mask_folder, case[0:-4]) + '.json'  # .tif
             with open(maskDIR, 'r') as load_f:
