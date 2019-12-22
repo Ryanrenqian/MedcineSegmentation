@@ -31,6 +31,7 @@ class Hard(BasicHard):
         self.config = config
         save_folder = os.path.join(self.config.get_config('base', 'save_folder'))
         self.workspace=os.path.join(save_folder,'hard')
+        os.system(f'mkdir -p {self.workspace}')
         self.log = logs.Log(os.path.join(self.workspace, "log.txt"))
         self.hardlist = os.path.join(self.workspace, 'hardexample.list')
         # test params
@@ -117,11 +118,11 @@ class Hard(BasicHard):
                 output = F.softmax(output)[:, 1]
                 acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(),class_ids, 0.5)
                 acc_batch = acc_batch_total
-                iteration+=1
+                iteration+=self.cfg('batch_size')
                 for i,patch_name in zip(output,patch_names):
                     if i>0.5:
                         records.append(patch_name+'\n')
-                if iteration> 400000:
+                if iteration> 200000:
                     break
             hard_examples = save_helper.save_hard_example(self.hardlist, records)
             time_counter.addval(time.time(), key='End seeking hard exmample')
