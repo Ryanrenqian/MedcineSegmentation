@@ -227,7 +227,7 @@ def main():
     total_FPs.sort()
     total_sensitivity.sort()
     points = len(total_FPs[total_FPs < 800])
-    plotFROC(total_FPs[:points], total_sensitivity[:points])
+    plotFROC(total_FPs[:points], total_sensitivity[:points],args.output)
     # compute avg froc
     eval_threshold = [0.25, 0.5, 1, 2, 4, 8]
     eval_TPs = np.interp(eval_threshold, total_FPs[:], total_sensitivity[:])
