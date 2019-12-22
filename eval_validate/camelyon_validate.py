@@ -1,6 +1,6 @@
 
 from basic.dataset import camelyon_data
-from ..dataset.dynamic_dataset import ListDataset
+from ..dataset.dynamic_dataset import *
 import torchvision.models as models
 import torchvision.transforms as transforms
 # 血液细胞评测
@@ -48,8 +48,13 @@ class Validate(basic_validate.BasicValidate):
                                                  transforms.ColorJitter(0.05, 0.05, 0.05, 0.05),
                                                  transforms.ToTensor(),
                                                  transforms.Normalize((0.783, 0.636, 0.74), (0.168, 0.187, 0.144))])
-        validate_dataset = breast_images.BreastDataset(self.cfg('data_folder'), transform=validate_transform,
-                                                       groundtruth_file='val_labels.csv')
+
+
+        validate_dataset = ValidDataset(self.config.get_config('valid', 'tumor_list'),
+                                   self.config.get_config('valid', 'normal_list'),
+                                   transform=validate_transform,
+                                   tif_folder=self.config.get_config('base', 'train_tif_folder'),
+                                   patch_size=self.config.get_config('base', 'patch_size'))
         # test dataset
         # iter_data = iter(validate_dataset)
         # _input, _labels, path_list = next(iter_data)

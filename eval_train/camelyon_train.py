@@ -1,4 +1,4 @@
-from ..dataset import DynamicDataset,EvalDataset
+from ..dataset import DynamicDataset,EvalDataset,ValidDataset
 import torchvision.models as models
 import torchvision.transforms as transforms
 # 血液细胞评测
@@ -79,6 +79,7 @@ class Train(basic_train.BasicTrain):
                                                sampler=sampler, num_workers=self.cfg('num_workers'))
 
 
+
     def init_optimizer(self, _model):
         _params = self.cfg('params')
         self.optimizer = optim.SGD(_model.parameters(), lr=_params['lr_start'], momentum=_params['momentum'],
@@ -150,7 +151,7 @@ class Train(basic_train.BasicTrain):
             self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'])
 #             self.optimizer_schedule.step()
             # 增加validation部分
-            # if validation:
+            # if epoch%5==0:
             #     best_epoch=self.valid(_model,epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
             save_helper.save_epoch_model(self.workspace,epoch, 'train', acc, losses, _model, iteration)

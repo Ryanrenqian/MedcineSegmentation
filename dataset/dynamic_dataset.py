@@ -60,6 +60,39 @@ class ListDataset(data.Dataset):
     def __len__(self):
         return len(self.patch_name_list)
 
+class ValidDataset():
+    def __init__(self,normal_list,tumor_list,transform,patch_size,tif_folder='/root/workspace/dataset/CAMELYON16/training/*'):
+        self.tumor = ListDataset(list_file=tumor_list,
+                                 tif_folder=tif_folder,
+                                 transform=transform,
+                                 all_class=1,
+                                 patch_size=patch_size)
+        self.normal = ListDataset(list_file=normal_list,
+                                  tif_folder=tif_folder,
+                                  transform=transform,
+                                  all_class=0,
+                                  patch_size=patch_size)
+    @property
+    def data(self):
+        '''
+
+        :return: Tumor + Normal dataset
+        '''
+        return data.ConcatDataset([self.tumor,self.normal])
+
+    def __getitem__(self, index):
+        return self.data[index]
+
+    def __len__(self):
+        return len(self.tumor) + len(self.normal)
+
+    @property
+    def shape(self):
+        '''
+
+        :return: tumor size, normal size
+        '''
+        return (len(self.tumor), len(self.normal))
 
 class DynamicDataset():
     def __init__(self,normal_list,tumor_list,data_size,transform,patch_size,replacement=False, tif_folder='/root/workspace/dataset/CAMELYON16/training/*'):

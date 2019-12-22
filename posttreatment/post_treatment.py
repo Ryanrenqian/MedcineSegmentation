@@ -61,7 +61,7 @@ class ScanNetPost():
             x, y = np.sum(indexes, axis=0) / indexes.shape[0]
             x = int(x * self.Sd + self.Lf / 2)  # 使用中间值map
             y = int(y * self.Sd + self.Lf / 2)  # 使用中间值map
-            csvRows.append([max_p, y, x])  # Transpose location
+            csvRows.append([max_p, x, y])  # Transpose location
             ed3 = time.time()
             logging.info('each Iter, index st-ed: %.4f' % (ed3 - ed2))
 
