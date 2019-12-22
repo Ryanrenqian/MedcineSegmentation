@@ -60,7 +60,7 @@ def computeFROC(FROC_data):
     total_FPs.append(0)
     total_TPs.append(0)
     total_FPs = np.asarray(total_FPs) / float(len(FROC_data[0]))
-    total_sensitivity = np.asarray(total_TPs) / float(sum(FROC_data[3]))
+    total_sensitivity = np.asarray(total_TPs) / float(sum(FROC_data[3])+0.0000001)
     return total_FPs, total_sensitivity
 
 
