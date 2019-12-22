@@ -40,6 +40,7 @@ class Train(basic_train.BasicTrain):
         writer_path = os.path.join(self.workspace,'visualize')
         os.system(f'mkdir -p {writer_path}')
         self.writer = SummaryWriter(writer_path)
+        self.train_loader=self.load_data()
         self.valid =  Validate(self.config, self.workspace)
         # self.after_model_output = getattr(camelyon_models, 'after_model_output')
 
