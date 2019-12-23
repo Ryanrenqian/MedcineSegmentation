@@ -154,6 +154,7 @@ class Hard(BasicHard):
                 output = model(input).squeeze().cpu()
                 #             pdb.set_trace()
                 loss = criterion(output, labels)
+                losses.addval(loss.item(), len(output))
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()

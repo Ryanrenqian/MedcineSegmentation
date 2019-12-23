@@ -68,10 +68,6 @@ class Validate(basic_validate.BasicValidate):
         #         pdb.set_trace()
         _model.eval()
         criterion = nn.CrossEntropyLoss()
-        time_counter = counter.Counter()
-        time_counter.addval(time.time(), key='validate epoch start')
-        truth_labels = []
-        pred_labels = []
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter()}
         losses = counter.Counter()
@@ -92,6 +88,4 @@ class Validate(basic_validate.BasicValidate):
             acc['avg_counter_pos'].addval(acc_batch_pos)
             acc['avg_counter_neg'].addval(acc_batch_neg)
             losses.addval(loss.item(), len(_output))
-            time_counter.addval(time.time())
-
         return acc['avg_counter_total'].avg,acc['avg_counter_pos'].avg,acc['avg_counter_neg'].avg,losses.avg
