@@ -152,8 +152,8 @@ class Train(basic_train.BasicTrain):
             self.writer.add_scalar('acc_batch_pos in train', acc['avg_counter_pos'].avg, epoch)
             self.writer.add_scalar('acc_batch_neg in train', acc['avg_counter_neg'].avg, epoch)
             self.writer.add_scalar('loss in train', losses.avg, epoch)
-            self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'])
-#             self.optimizer_schedule.step()
+            self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'],epoch)
+            self.optimizer_schedule.step()
             # 增加validation部分
             if epoch >29:
                 result=self.validation(_model,epoch)
