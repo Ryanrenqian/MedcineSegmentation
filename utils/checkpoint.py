@@ -56,7 +56,7 @@ class CheckPoint(object):
         """
         save_path = os.path.join(workspace,'models')
         os.system(f'mkdir -p {save_path}')
-        save_name = os.path.join(save_path,f'epoch_{epoch}_type_{run_type}_acc_losses.pth')
+        save_name = os.path.join(save_path,f'epoch_{epoch}_{run_type}_acc_losses.pth')
         # 保存中间结果
         torch.save({"iteration":iteration,
                     "epoch": epoch,
