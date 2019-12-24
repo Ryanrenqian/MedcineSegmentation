@@ -61,14 +61,14 @@ class Train(basic_train.BasicTrain):
         _size = self.config.get_config('base', 'crop_size')
         train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
         if self.config.get_config('train','method','type') == 'base':
-            train_dataset = EvalDataset(tumor_list=self.config.get_config('train', 'train_list'),
+            train_dataset = EvalDataset(self.config.get_config('train', 'train_list'),
                                                       transform=train_transform,
                                                       tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                       patch_size=self.config.get_config('base', 'patch_size'))
             return torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg('batch_size'),
                                                shuffle=True, num_workers=self.cfg('num_workers'))
         elif self.config.get_config('train','method','type') == 'on_the_fly':
-            dynamicdata = DynamicDataset(self.config.get_config('train', 'tumor_list'),
+            dynamicdata = DynamicDataset(tumor_list=self.config.get_config('train', 'tumor_list'),
                                                      normal_list=self.config.get_config('train', 'normal_list'),
                                                      transform=train_transform,
                                                      data_size=self.config.get_config('train','data_size'),
