@@ -63,7 +63,7 @@ class CheckPoint(object):
                     "acc": acc,
                     "losses": losses}, save_name)
         # 保存模型参数
-        save_model_name = os.path.join(save_path,f'epoch_{epoch}_type_{run_type}_model.pth')
+        save_model_name = os.path.join(save_path,f'epoch_{epoch}_{run_type}_model.pth')
         torch.save({"epoch": epoch,
                     "model_state": model.state_dict()}, save_model_name)
 
