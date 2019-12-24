@@ -61,7 +61,7 @@ class Train(basic_train.BasicTrain):
         _size = self.config.get_config('base', 'crop_size')
         train_transform = image_transform.get_train_transforms(shorter_side_range = (_size, _size), size = (_size, _size))
         if self.config.get_config('train','method','type') == 'base':
-            train_dataset = EvalDataset(self.config.get_config('train', 'train_list'),
+            train_dataset = EvalDataset(tumor_list=self.config.get_config('train', 'train_list'),
                                                       transform=train_transform,
                                                       tif_folder=self.config.get_config('base', 'train_tif_folder'),
                                                       patch_size=self.config.get_config('base', 'patch_size'))
@@ -69,7 +69,7 @@ class Train(basic_train.BasicTrain):
                                                shuffle=True, num_workers=self.cfg('num_workers'))
         elif self.config.get_config('train','method','type') == 'on_the_fly':
             dynamicdata = DynamicDataset(self.config.get_config('train', 'tumor_list'),
-                                                     self.config.get_config('train', 'normal_list'),
+                                                     normal_list=self.config.get_config('train', 'normal_list'),
                                                      transform=train_transform,
                                                      data_size=self.config.get_config('train','data_size'),
                                                      replacement=self.config.get_config('train','replacement'),
@@ -155,7 +155,6 @@ class Train(basic_train.BasicTrain):
             self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'],epoch)
             self.optimizer_schedule.step()
             # 增加validation部分
-
             result=self.validation(_model,epoch)
             self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
             self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
