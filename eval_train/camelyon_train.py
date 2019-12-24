@@ -155,12 +155,12 @@ class Train(basic_train.BasicTrain):
             self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'],epoch)
             self.optimizer_schedule.step()
             # 增加validation部分
-            if epoch >29:
-                result=self.validation(_model,epoch)
-                self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
-                self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
-                self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
-                self.writer.add_scalar('loss in valid', result[3], epoch)
+
+            result=self.validation(_model,epoch)
+            self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
+            self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
+            self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
+            self.writer.add_scalar('loss in valid', result[3], epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
             save_helper.save_epoch_model(self.workspace,epoch, 'train', acc, losses, _model, iteration)
             time_counter.addval(time.time(), key='training epoch end')
