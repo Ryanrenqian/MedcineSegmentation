@@ -144,7 +144,7 @@ class Hard(BasicHard):
         acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
                'avg_counter_neg': counter.Counter(),
                'avg_counter': counter.Counter(), 'epoch_acc_image': []}
-        for epoch in range(self.config.get_config('hard','epoch')):
+        for epoch in range(tqdm(self.config.get_config('hard','epoch'))):
             for i,data in enumerate(self.load_hard_data(), 0):
                 input, labels, path_list = data
                 if torch.cuda.is_available():

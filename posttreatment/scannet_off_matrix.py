@@ -154,11 +154,12 @@ def getargs():
     parser.add_argument('-save',default='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256')
     parser.add_argument('-dense', default=2,type=int)
     parser.add_argument('-k',default=82,type=int)
-    parser.add_argument('-thres',default=0.01,type=float)
+    parser.add_argument('-thres',default=0.01,type=float,help="filter coarse OTSU region 0.1 ~0.4")
     return parser.parse_args()
 
 def main():
     args=getargs()
+    os.system(f'mkdir -p {args.save}')
     logfile=os.path.join(args.save,'log.txt')
     logging.basicConfig(level=logging.INFO, filename=logfile,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
