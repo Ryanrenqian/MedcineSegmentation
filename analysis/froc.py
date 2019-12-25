@@ -93,7 +93,7 @@ def judgeinpoly(x,y,coord):
     """
     Judge whether (x,y) is in coord
     """
-    HittedLabel = 0;
+    HittedLabel = 0
     for annotation in coord['positive']:
         name = annotation['name']
         vertices = np.array(annotation['vertices'])
@@ -142,7 +142,6 @@ def computeITC(mask, resolution, level):
 def compute_FP_TP_Probs(Ycorr, Xcorr, Probs, is_tumor, coord, ITC_labels):
     max_label = len(coord['positive'])
     FP_counter = 0
-    is_tumor = 1
     max_label = len(coord['positive'])
     FP_probs = []
     TP_probs = np.zeros((max_label,), dtype=np.float32)

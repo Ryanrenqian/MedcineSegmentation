@@ -5,8 +5,9 @@ workspace=$2
 dense=$3
 tresh=$4
 k=$5
+GPU=$6
 densepath=$workspace/dense${dense}
-mkdir -p $densepath
-python scannet_off_matrix.py -dense $dense -p $model -save $densepath -k $k
 csvpath=$densepath/csv
-python post_treatment.py -s $csvpath -i $densepath -d $dense
+CUDACUDA_VISIBLE_DEVICES=$GPU python posttreatment/scannet_off_matrix.py -dense $dense -p $model \
+ -save $densepath -k $k -thres $thres && \
+python posttreatment/post_treatment.py -s $csvpath -i $densepath -d $dense
