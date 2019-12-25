@@ -58,10 +58,10 @@ class ScanNetPost():
             ed2 = time.time()
             logging.info('each Iter, filter st-ed: %.4f' % (ed2 - ed))
             indexes = np.argwhere(labels == i)
-            x, y = np.sum(indexes, axis=0) / indexes.shape[0]
-            x = int(x * self.Sd + self.Lf / 2)  # 使用中间值map
-            y = int(y * self.Sd + self.Lf / 2)  # 使用中间值map
-            csvRows.append([max_p, x, y])  # Transpose location
+            y, x = np.sum(indexes, axis=0) / indexes.shape[0]
+            x = x * self.Sd
+            y = y * self.Sd
+            csvRows.append([max_p, x, y])
             ed3 = time.time()
             logging.info('each Iter, index st-ed: %.4f' % (ed3 - ed2))
 
