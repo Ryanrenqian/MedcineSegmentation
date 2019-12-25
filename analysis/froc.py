@@ -53,7 +53,7 @@ def computeFROC(FROC_data):
 
     total_FPs, total_TPs = [], []
     all_probs = sorted(set(unlisted_FPs + unlisted_TPs))
-    # logging.info(len(all_probs[1:]))
+    logging.info(len(all_probs[1:]))
     for Thresh in all_probs[1:]:
         total_FPs.append((np.asarray(unlisted_FPs) >= Thresh).sum())
         total_TPs.append((np.asarray(unlisted_TPs) >= Thresh).sum())
@@ -189,7 +189,7 @@ def main():
         elif i > 100:
             test = 'test_'
         dir = test + str(i) + '.csv'
-        if os.path.exists(result_folder + dir):
+        if os.path.exists(os.path.join(result_folder, dir)):
             result_file_list.append(dir)
     FROC_data = np.zeros((4, len(result_file_list)), dtype=np.object)
     FP_summary = np.zeros((2, len(result_file_list)), dtype=np.object)
@@ -221,6 +221,7 @@ def main():
                                                                                                   is_tumor, mask,
                                                                                                   ITC_labels)
         caseNum += 1
+    print(FROC_data[1][caseNum-1], FROC_data[2][caseNum-1], FROC_data[3][caseNum-1])
     total_FPs, total_sensitivity = computeFROC(FROC_data)
     total_FPs.sort()
     total_sensitivity.sort()
