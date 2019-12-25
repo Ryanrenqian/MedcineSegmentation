@@ -22,6 +22,7 @@ try:
     from tensorboardX import SummaryWriter
 except ImportError:
     from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
 class Hard(BasicHard):
     """Hard Minning, 提取难样本用于finetune
@@ -117,7 +118,7 @@ class Hard(BasicHard):
             records = []
             self.log.info(f'resume checkpoint {epoch}')
             samples = 0
-            for i, data in enumerate(self.load_normal_data(), 0):
+            for i, data in enumerate(tqdm(self.load_normal_data()), 0):
                 input_imgs, class_ids, patch_names=data
                 output = model(input_imgs)
                 output = output.cpu()
@@ -128,7 +129,6 @@ class Hard(BasicHard):
                 for i,patch_name in zip(output,patch_names):
                     if i>0.5:
                         records.append(patch_name+'\n')
-                self.log.info(f'proceed: {samples/200000}, ex:{patch_name}')
                 if samples> 200000:
                     break
             hard_examples = save_helper.save_hard_example(self.hardlist, records)

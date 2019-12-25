@@ -63,14 +63,14 @@ def eval_main():
 def get_instance(_config, _model):
     train, validate, test, hard = None, None, None, None
     # get train/test instance by reflect
-    if _config.get_config("train", 'run_this_module') == True:
+    if _config.get_config("train", 'run_this_module'):
         train = reflect.get_instance(_config, 'train')
         train.init_optimizer(_model)
     # if _config.get_config("validate", 'run_this_module') == True:
     #     validate = reflect.get_instance(_config, 'validate')
-    if _config.get_config("test", 'run_this_module') == True:
+    if _config.get_config("test", 'run_this_module') :
         test = reflect.get_instance(_config, 'test')
-    if _config.get_config("hard", 'run_this_module') == True:
+    if _config.get_config("hard", 'run_this_module') :
         hard = reflect.get_instance(_config, 'hard')
     return train, validate, test, hard
 
