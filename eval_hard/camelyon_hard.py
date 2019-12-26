@@ -175,9 +175,9 @@ class Hard(BasicHard):
             self.writer.add_scalar('loss in train', losses.avg, epoch)
             # Validation
             result = self.validation(model, epoch)
-            self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
-            self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
-            self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
+            self.writer.add_scalar('acc_total in valid', result[0], epoch)
+            self.writer.add_scalar('acc_pos in valid', result[1], epoch)
+            self.writer.add_scalar('acc_neg in valid', result[2], epoch)
             self.writer.add_scalar('loss in valid', result[3], epoch)
             save_helper.save_epoch_model(self.workspace,epoch, "hard", acc, losses, model, None)
 

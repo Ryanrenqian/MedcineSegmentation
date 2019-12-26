@@ -157,3 +157,4 @@ class CheckPoint(object):
         f = open(resume_info, 'w')
         f.write(json.dumps({"resume_path": resume_path}, ensure_ascii=False, indent=2))
         f.close()
+

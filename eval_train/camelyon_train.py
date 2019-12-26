@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 from ..eval_train import basic_train
 from ..model import camelyon_models
 
-import torch
+import torch,tqdm
 from torch import nn
 from torch import utils
 from torch.autograd import Variable
@@ -92,78 +92,79 @@ class Train(basic_train.BasicTrain):
         return self.valid.run(_model,epoch)
 
 
-    def train(self, _model, save_helper,config,validation):
-        """单个epoch的train 参数在epoch中是原子操作
-        :过程保存：1.将单轮epoch中对每个样本的分类情况记录下来 2.将模型通过checkpoint保存
-        :return 本次epoch中的所有样本的详细结果，平均acc，loss
-        """
-        criterion = nn.CrossEntropyLoss()
-        #         pdb.set_trace()
-        acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
-               'avg_counter_neg': counter.Counter(),
-               'avg_counter': counter.Counter(), 'epoch_acc_image': []}
-        train_epoch_start = 0
-        train_epoch_stop = config.get_config("train" ,'total_epoch')
-        iteration = 0
-        if config.get_config("train","resume","run_this_module"):
-            train_epoch_start = config.get_config("train","resume","start_epoch")+1
-            train_epoch_stop = train_epoch_start+config.get_config("train" ,"resume",'total_epoch')
-            self.log.info('resume checkpoint')
-            _model,iteration = self.checkpoint(_model,save_helper)
+    def train_epoch(self, _model,epoch,  criterion):
+        _model.train()
+        acc = {'correct_pos': counter.Counter(), 'total_pos': counter.Counter(),
+               'correct_neg': counter.Counter(), 'total_neg': counter.Counter()}
         losses = counter.Counter()
         time_counter = counter.Counter()
         time_counter.addval(time.time(), key='training epoch start')
+        for i, data in enumerate(tqdm.tqdm(self.load_data(),dynamic_ncols=True, leave=False), 0):
+            _input, _labels, path_list = data
+            if torch.cuda.is_available():
+                _input = Variable(_input.type(torch.cuda.FloatTensor))
+            else:
+                _input = Variable(_input.type(torch.FloatTensor))
+            _output = _model(_input).squeeze().cpu()
+            #             pdb.set_trace()
+            loss = criterion(_output, _labels)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            #             pdb.set_trace()
+            _output = F.softmax(_output)[:, 1].detach()
+            correct_pos, total_pos, correct_neg, total_neg = accuracy.acc_binary_class(_output, _labels, 0.5)
+            acc['correct_pos'].addval(correct_pos)
+            acc['total_pos'].addval(total_pos)
+            acc['correct_neg'].addval(correct_neg)
+            acc['total_neg'].addval(total_neg)
+            losses.addval(loss.item(), len(_output))
+        TP = acc['correct_pos'].sum
+        total_pos = acc['total_neg'].sum
+        TN = acc['correct_neg'].sum
+        total_neg = acc['total_pos'].sum
+        total = total_pos + total_neg
+        time_counter.addval(time.time())
+        total_neg = acc['total_pos'].sum
+        total = total_pos + total_neg
+        total_acc = (TP + TN) / total
+        pos_acc = TP / total_pos
+        neg_acc = TN / total_neg
+        self.log.info(
+            'train new epoch:%d,batch iter:%d/%d, lr:%.5f, [total:%.2f-pos:%.2f-neg:%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
+                epoch, i, len(self.train_loader),
+                self.optimizer.state_dict()['param_groups'][0]['lr'],
+                total_acc, pos_acc, neg_acc,
+                loss.item(),
+                losses.avg,
+                time_counter.interval()), '\r')
+        return total_acc,pos_acc,neg_acc, losses.avg
+
+    def run(self, _model, save_helper,config):
+        criterion = nn.CrossEntropyLoss()
+        train_epoch_start = 0
+        train_epoch_stop = config.get_config("train", 'total_epoch')
+        iteration = 0
+        if config.get_config("train", "resume", "run_this_module"):
+            train_epoch_start = config.get_config("train", "resume", "start_epoch") + 1
+            train_epoch_stop = train_epoch_start + config.get_config("train", "resume", 'total_epoch')
+            self.log.info('resume checkpoint')
+            _model, iteration = self.checkpoint(_model, save_helper)
         for epoch in range(train_epoch_start, train_epoch_stop):
-            _model.train()
-            for i, data in enumerate(self.load_data(), 0):
-                iteration += 1
-                train_input, train_labels, path_list = data
-                if torch.cuda.is_available():
-                    train_input = Variable(train_input.type(torch.cuda.FloatTensor))
-                else:
-                    train_input = Variable(train_input.type(torch.FloatTensor))
-                train_output = _model(train_input).squeeze().cpu()
-    #             pdb.set_trace()
-                loss = criterion(train_output, train_labels) 
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-    #             pdb.set_trace()
-                train_output=F.softmax(train_output)[:,1].detach()
-                acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(train_output, train_labels, 0.5)
-                acc_batch = acc_batch_total
-                acc['avg_counter_total'].addval(acc_batch_total)
-                acc['avg_counter_pos'].addval(acc_batch_pos)
-                acc['avg_counter_neg'].addval(acc_batch_neg)
-                acc['avg_counter'].addval(acc_batch)
-                losses.addval(loss.item(), len(train_output))
-                time_counter.addval(time.time())
-                #             pdb.set_trace()
-                if i % self.config.get_config('base', 'print_freq', 'batch_iter') == 0:
-                    self.log.info('train new epoch:%d/%d,batch iter:%d/%d, lr:%.5f, acc-iter/avg:[%.2f/%.2f]-[avg:%.2f-pos:%.2f-neg:%.2f], loss:%.2f/%.2f,time consume:%.2f s' % (
-                        epoch, train_epoch_stop, i, len(self.train_loader),
-                        self.optimizer.state_dict()['param_groups'][0]['lr'], acc_batch,
-                        acc['avg_counter'].avg,
-                        acc['avg_counter_total'].avg, acc['avg_counter_pos'].avg, acc['avg_counter_neg'].avg,
-                        loss.item(),
-                        losses.avg,
-                        time_counter.interval()), '\r')
-            self.writer.add_scalar('acc_batch_total in train', acc['avg_counter_total'].avg, epoch)
-            self.writer.add_scalar('acc_batch_pos in train', acc['avg_counter_pos'].avg, epoch)
-            self.writer.add_scalar('acc_batch_neg in train', acc['avg_counter_neg'].avg, epoch)
-            self.writer.add_scalar('loss in train', losses.avg, epoch)
-            self.writer.add_scalar('Lr', self.optimizer.state_dict()['param_groups'][0]['lr'],epoch)
-            self.optimizer_schedule.step()
-            # 增加validation部分
-            result=self.validation(_model,epoch)
-            self.writer.add_scalar('acc_batch_total in valid', result[0], epoch)
-            self.writer.add_scalar('acc_batch_pos in valid', result[1], epoch)
-            self.writer.add_scalar('acc_batch_neg in valid', result[2], epoch)
+            total_acc,pos_acc,neg_acc, loss=self.train_epoch(_model,epoch, criterion)
+            self.writer.add_scalar('acc_total in train', total_acc, epoch)
+            self.writer.add_scalar('acc_pos in train', pos_acc, epoch)
+            self.writer.add_scalar('acc_neg in train', neg_acc, epoch)
+            self.writer.add_scalar('loss in train', loss, epoch)
+            state_dict = {
+                "net": _model.state_dict(),
+                "optimizer": self.optimizer.state_dict(),
+                "last_epoch": epoch,
+            }
+            save_helper.save_epoch_model(self.workspace, epoch, 'train', total_acc, loss, _model, iteration)
+            result = self.validation(_model, epoch)
+            self.writer.add_scalar('acc_total in valid', result[0], epoch)
+            self.writer.add_scalar('acc_pos in valid', result[1], epoch)
+            self.writer.add_scalar('acc_neg in valid', result[2], epoch)
             self.writer.add_scalar('loss in valid', result[3], epoch)
             # 2.2 保存好输出的结果，不要加到循环日志中去
-            save_helper.save_epoch_model(self.workspace,epoch, 'train', acc, losses, _model, iteration)
-            time_counter.addval(time.time(), key='training epoch end')
-            self.log.info(('\ntrain epoch time consume:%.2f s' % (time_counter.key_interval(key_ed='training epoch end',
-                                                                                            key_st='training epoch start'))))
-        return epoch # 返回epoch用于后续分析
-

@@ -93,7 +93,6 @@ class ScanNetPost():
         logging.info('%s Done' % save_path)
 
 
-#         return fpm_filter  # 无需返回值
 
 
 def multprocess(process, fpm, save_path, share_dict, lock):

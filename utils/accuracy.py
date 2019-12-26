@@ -46,7 +46,34 @@ def acc_binary_class(output, target, thredshold=0.5):
     correct_total = correct_pos + correct_neg
     return (100 * correct_total / total), (100 * correct_pos / total_pos), (100 * correct_neg / total_neg)
 
-
+def acc_valid(output, target, thredshold=0.5):
+    """
+    :param output:model classification output
+    :param target:ground truth label
+    :param threshold:正样本的阈值
+    return 返回这个batch size的准确率,total,pos,neg
+    """
+    total_pos = 0
+    total_neg = 0
+    correct_pos = 0
+    correct_neg = 0
+    for i in range(len(output)):
+        _o = output[i]
+        _t = target[i]
+        pred_label = 1 if _o > thredshold else 0
+        if int(_t) == 1:
+            total_pos += 1
+            if pred_label == 1:
+                correct_pos += 1
+        else:
+            total_neg += 1
+            if pred_label == 0:
+                correct_neg += 1
+    total = total_pos + total_neg
+    total_pos = 1 if total_pos== 0 else total_pos
+    total_neg = 1 if total_neg== 0 else total_neg
+    correct_total = correct_pos + correct_neg
+    return  correct_pos, total_pos,  correct_neg , total_neg
 
 def acc_two_class_image(output, target, path_list, thredshold=0.5):
     """

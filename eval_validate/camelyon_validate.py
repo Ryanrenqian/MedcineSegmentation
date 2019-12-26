@@ -68,8 +68,8 @@ class Validate(basic_validate.BasicValidate):
         #         pdb.set_trace()
         _model.eval()
         criterion = nn.CrossEntropyLoss()
-        acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
-               'avg_counter_neg': counter.Counter()}
+        acc = {'correct_pos': counter.Counter(), 'total_pos': counter.Counter(),
+               'correct_neg': counter.Counter(),'total_neg':counter.Counter()}
         losses = counter.Counter()
         for i, data in enumerate(self.load_data(), 0):
             _input, _labels, path_list = data
@@ -82,10 +82,18 @@ class Validate(basic_validate.BasicValidate):
             loss = criterion(_output, _labels)
             _output = F.softmax(_output)[:, 1].detach()
             _output = _output.cpu()
-            acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(_output, _labels, 0.5)
-            acc_batch = acc_batch_total
-            acc['avg_counter_total'].addval(acc_batch_total)
-            acc['avg_counter_pos'].addval(acc_batch_pos)
-            acc['avg_counter_neg'].addval(acc_batch_neg)
+            correct_pos, total_pos, correct_neg, total_neg = accuracy.acc_binary_class(_output, _labels, 0.5)
+            acc['correct_pos'].addval(correct_pos)
+            acc['total_pos'].addval(total_pos)
+            acc['correct_neg'].addval(correct_neg)
+            acc['total_neg'].addval(total_neg)
             losses.addval(loss.item(), len(_output))
-        return acc['avg_counter_total'].avg,acc['avg_counter_pos'].avg,acc['avg_counter_neg'].avg,losses.avg
+        TP=acc['correct_pos'].sum
+        total_pos=acc['total_neg'].sum
+        TN=acc['correct_neg'].sum
+        total_neg=acc['total_pos'].sum
+        total=total_pos+total_neg
+        total_acc=(TP+TN)/total
+        pos_acc=TP/total_pos
+        neg_acc=TN/total_neg
+        return total_acc,pos_acc,neg_acc, losses.avg

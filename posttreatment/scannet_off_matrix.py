@@ -81,7 +81,6 @@ class PostScan():
                     w = int(w_ / self.alpha)
                     dpt[w_, h_] = opts[i, j][w, h]
             return dpt
-        x, y = 0, 0
         # st = time.time()
         hp, wp = int(hi - self.sd *(self.alpha - 1)), int(wi - self.sd * (self.alpha - 1))  #计算ROI区域大小
         ho, wo = int((hp - self.lf) / self.sf) + 1, int((wp - self.lf) / self.sf) + 1 #计算ROI区域的Lp值
@@ -91,7 +90,9 @@ class PostScan():
 #         print(dpt.shape)
         roi_list=[]
     # 将 roi打包成batch_size
+        x=0
         for i in range(self.alpha):
+            y=0
             for j in range(self.alpha):
                 roi = block.crop((x, y, x+wp, y+hp)).convert('RGB')  # left, upper, right, lower
                 roi=transforms.ToTensor()(roi).permute(0,2,1).unsqueeze(dim=0)

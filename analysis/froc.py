@@ -173,7 +173,7 @@ def getargs():
 def main():
     args=getargs()
     logfile = os.path.join(args.output, 'log.txt')
-    logging.basicConfig(level=logging.INFO, filename=logfile,
+    logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.info(args)
     mask_folder=args.mask_folder
@@ -191,6 +191,7 @@ def main():
         dir = test + str(i) + '.csv'
         if os.path.exists(os.path.join(result_folder, dir)):
             result_file_list.append(dir)
+    logging.info(f"csvfiles: {len(result_file_list)}")
     FROC_data = np.zeros((4, len(result_file_list)), dtype=np.object)
     FP_summary = np.zeros((2, len(result_file_list)), dtype=np.object)
     detection_summary = np.zeros((2, len(result_file_list)), dtype=np.object)
