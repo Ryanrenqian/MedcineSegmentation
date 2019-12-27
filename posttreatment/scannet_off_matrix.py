@@ -16,7 +16,7 @@ from  skimage.filters import threshold_otsu
 import argparse,logging
 from tqdm import tqdm
 
-class PostScan():
+class Scan():
     def __init__(self, scannet,transform=None,save=None,dense_coefficient=2, maxpools=5, stride=2):
         '''
 
@@ -149,7 +149,7 @@ class PostScan():
 def getargs():
     parser = argparse.ArgumentParser(description='scannet dense reconstruction')
     parser.add_argument('-slide_folder', default='/root/workspace/dataset/CAMELYON16/testing/images/', help='config path')
-    parser.add_argument('-pth', default='/root/workspace/renqian/0929/save/camelyon16/scannet_train_MSE_NCRF_40w_patch_256/2019-10-21_08-33-34/hardmine_0_epoch_9_type_train_model.pth', )
+    parser.add_argument('-pth', type=str )
     parser.add_argument('-resize', default=64, help='resolution',type=int)
     parser.add_argument('-otsu',default='/root/workspace/huangxs/prepare_data/16/wsi_otsu_save/')
     parser.add_argument('-save',default='/root/workspace/renqian/1115/result/scannet_train_MSE_NCRF_40w_patch_256')
@@ -184,7 +184,7 @@ def main():
     with open(os.path.join(save_npy, 'log.txt'), 'w')as f:
         f.write(pth + '\n' + save_npy)
         f.write(str(args))
-    post = PostScan(scannet=model, save=save_npy, dense_coefficient=args.dense)
+    post = Scan(scannet=model, save=save_npy, dense_coefficient=args.dense)
     # 增加断点保存功能
     saved = []
     for parent, dirnames, filenames in os.walk(save_npy):

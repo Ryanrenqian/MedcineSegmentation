@@ -13,6 +13,7 @@ from ..dataset import camelyon_data
 from ..utils import logs
 from ..utils import counter
 from ..utils import accuracy
+from ..utils.checkpoint import Checkpointer
 from ..model import camelyon_models
 from ..dataset import DynamicDataset, EvalDataset, ListDataset
 from ..eval_validate.camelyon_validate import Validate
@@ -41,6 +42,7 @@ class Hard(BasicHard):
         self.best_acc = 0
         self.after_model_output = getattr(camelyon_models, 'after_model_output')
         self.valid =  Validate(self.config, self.workspace)
+        self.ckpter = Checkpointer(self.workspace)
 
 
     def cfg(self, name):
@@ -93,6 +95,35 @@ class Hard(BasicHard):
     def validation(self, _model, epoch):
         return self.valid.run(_model, epoch)
 
+    def extractHardSample(self,model):
+        model.eval()
+        # time_counter = counter.Counter()
+        # time_counter.addval(time.time(), key='test epoch start')
+        # acc = {'avg_counter_total': counter.Counter(), 'avg_counter_pos': counter.Counter(),
+        #        'avg_counter_neg': counter.Counter(),
+        #        'avg_counter': counter.Counter(), 'epoch_acc_image': []}
+        records = []
+        samples = 0
+        for i, data in enumerate(tqdm(self.load_normal_data()), 0):
+            input_imgs, class_ids, patch_names = data
+            output = model(input_imgs)
+            output = output.cpu()
+            output = F.softmax(output)[:, 1]
+            acc_batch_total, acc_batch_pos, acc_batch_neg = accuracy.acc_binary_class(output.cpu(), class_ids, 0.5)
+            acc_batch = acc_batch_total
+            samples += self.cfg('batch_size')
+            for i, patch_name in zip(output, patch_names):
+                if i > 0.5:
+                    records.append(patch_name + '\n')
+            if samples > 200000:
+                break
+        hard_examples = self.save_hard_example(self.hardlist, records)
+        return hard_examples
+
+    def  run(self,model,epoch):
+        self.log.info(f'resume checkpoint {epoch}')
+        if self.config.get_config('hard','extract_hardsample'):
+            self.extractHardSample(model)
 
     def hard(self, model,save_helper,epoch):
         '''

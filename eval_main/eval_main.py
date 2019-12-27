@@ -29,7 +29,7 @@ def eval_main():
     config = config_base.ConfigBase(args.config)
     save_helper = checkpoint.CheckPoint(config)
     # get train/test instance by reflect
-    train = get_instance_by_key(config, 'train', save_helper)
+    train = get_instance_by_key(config, 'train')
     test = get_instance_by_key(config, 'test', save_helper)
 
     train_epoch_start = 0

@@ -53,7 +53,7 @@ def eval_main():
     time_counter.addval(time.time(), key='model load')
     validation= config.get_config("test", 'run_this_module')
     if config.get_config("train", 'run_this_module'):
-        epoch=train.train(model,  save_helper,config,validation)
+        epoch=train.run(model)
     # tain with hard_minning
     if config.get_config('hard','resume','run_this_module'):
         epoch = config.get_config('hard','resume','resume_checkpoint')
@@ -66,7 +66,7 @@ def get_instance(_config, _model):
     # get train/test instance by reflect
     if _config.get_config("train", 'run_this_module'):
         train = reflect.get_instance(_config, 'train')
-        train.init_optimizer(_model)
+        # train.init_optimizer(_model)
     # if _config.get_config("validate", 'run_this_module') == True:
     #     validate = reflect.get_instance(_config, 'validate')
     if _config.get_config("test", 'run_this_module') :

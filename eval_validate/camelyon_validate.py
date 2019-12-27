@@ -65,7 +65,6 @@ class Validate(basic_validate.BasicValidate):
         """单个epoch的validate
         :return 本次epoch中的p_k，其他不返回
         """
-        #         pdb.set_trace()
         _model.eval()
         criterion = nn.CrossEntropyLoss()
         acc = {'correct_pos': counter.Counter(), 'total_pos': counter.Counter(),

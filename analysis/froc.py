@@ -31,6 +31,11 @@ def readCSVContent(csvDIR):
         Probs.append(float(elems[0]))
         Xcorr.append(int(elems[1]))
         Ycorr.append(int(elems[2]))
+    # sort
+    index=sorted(range(len(Probs)),key=lambda x:Probs[x],reverse=True)
+    Probs=[Probs[i] for i in index]
+    Xcorr=[Xcorr[i] for i in index]
+    Ycorr=[Ycorr[i] for i in index]
     return Probs, Xcorr, Ycorr
 
 
@@ -165,7 +170,7 @@ def compute_FP_TP_Probs(Ycorr, Xcorr, Probs, is_tumor, coord, ITC_labels):
 def getargs():
     parser = argparse.ArgumentParser(description='calculate FROC')
     parser.add_argument('-m', '--mask_folder', type=str,
-                        default='/root/workspace/huangxs/prepare_data/16/wsi_mask/test_64/', help='mask_folder')
+                        default='/root/workspace/huangxs/prepare_data/16/ground_truth/', help='mask_folder')
     parser.add_argument('-o', '--output',  type=str,help='output')
     parser.add_argument('-i', '--input', type=str,help="csv folder")
     return parser.parse_args()

@@ -15,6 +15,7 @@ from ..utils import accuracy
 from ..utils import counter
 from ..utils import logs
 from ..utils import image_transform
+from ..utils.checkpoint import Checkpointer
 import time
 import pdb
 import os
@@ -42,20 +43,12 @@ class Train(basic_train.BasicTrain):
         self.writer = SummaryWriter(writer_path)
         self.train_loader=self.load_data()
         self.valid =  Validate(self.config, self.workspace)
-        # self.after_model_output = getattr(camelyon_models, 'after_model_output')
+        self.ckpter = Checkpointer(self.workspace)
 
     def cfg(self, name):
         """获取配置简易方式"""
         return self.config.get_config('train', name)
 
-    def checkpoint(self,  model,save_helper):
-        save_folder = os.path.join(self.workspace,'models')
-        epoch = self.config.get_config('train', 'resume' ,'start_epoch')
-        checkpoint = os.path.join(save_folder,f'epoch_{epoch}_train_model.pth')
-        epoch_checkpoint = torch.load(checkpoint)
-        model.load_state_dict(epoch_checkpoint['model_state'])
-        iteration = epoch_checkpoint.get('iteration',0)
-        return model,iteration
 
     def load_data(self):
         _size = self.config.get_config('base', 'crop_size')
@@ -140,16 +133,19 @@ class Train(basic_train.BasicTrain):
                 time_counter.interval()), '\r')
         return total_acc,pos_acc,neg_acc, losses.avg
 
-    def run(self, _model, save_helper,config):
+    def run(self, _model):
         criterion = nn.CrossEntropyLoss()
-        train_epoch_start = 0
-        train_epoch_stop = config.get_config("train", 'total_epoch')
-        iteration = 0
-        if config.get_config("train", "resume", "run_this_module"):
-            train_epoch_start = config.get_config("train", "resume", "start_epoch") + 1
-            train_epoch_stop = train_epoch_start + config.get_config("train", "resume", 'total_epoch')
-            self.log.info('resume checkpoint')
-            _model, iteration = self.checkpoint(_model, save_helper)
+        train_epoch_stop = self.cfg('total_epoch')
+        ckpt = self.ckpter.load(self.cfg("resume", "start_epoch"))
+        if ckpt[0]:
+            _model.load_state_dict(ckpt[0])
+            self.optimizer=self.optimizer.load_state_dict(ckpt[1])
+            train_epoch_start=ckpt[2]
+
+        else:
+            self.init_optimizer(_model)
+            train_epoch_start = 0
+
         for epoch in range(train_epoch_start, train_epoch_stop):
             total_acc,pos_acc,neg_acc, loss=self.train_epoch(_model,epoch, criterion)
             self.writer.add_scalar('acc_total in train', total_acc, epoch)
@@ -161,7 +157,7 @@ class Train(basic_train.BasicTrain):
                 "optimizer": self.optimizer.state_dict(),
                 "last_epoch": epoch,
             }
-            save_helper.save_epoch_model(self.workspace, epoch, 'train', total_acc, loss, _model, iteration)
+            self.ckpter.save(epoch, state_dict, total_acc)
             result = self.validation(_model, epoch)
             self.writer.add_scalar('acc_total in valid', result[0], epoch)
             self.writer.add_scalar('acc_pos in valid', result[1], epoch)
